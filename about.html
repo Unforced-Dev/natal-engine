@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About - StarChart</title>
+  <meta name="description" content="Learn about StarChart - an open-source cosmic blueprint calculator combining Western Astrology, Human Design, and Gene Keys.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌌</text></svg>">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="main-nav">
+    <a href="/" class="nav-logo">StarChart</a>
+    <div class="nav-links">
+      <a href="/" class="nav-link">Calculator</a>
+      <a href="/about.html" class="nav-link active">About</a>
+      <a href="/docs.html" class="nav-link">Docs</a>
+      <a href="/mcp.html" class="nav-link">MCP</a>
+      <a href="https://github.com/unforced/starchart" class="nav-link nav-github" target="_blank">GitHub</a>
+    </div>
+  </nav>
+
+  <!-- Cosmic Background -->
+  <div class="cosmic-bg">
+    <div class="stars"></div>
+    <div class="stars"></div>
+    <div class="nebula"></div>
+  </div>
+
+  <div class="page-container">
+    <div class="page-header">
+      <h1>About StarChart</h1>
+      <p>Open-source cosmic blueprint calculator with astronomical precision</p>
+    </div>
+
+    <section class="content-section">
+      <h2>What is StarChart?</h2>
+      <p>
+        StarChart is a free, open-source tool that calculates your cosmic blueprint using three complementary wisdom systems. By entering your birth date, time, and location, you receive a comprehensive profile that synthesizes ancient wisdom with modern astronomical precision.
+      </p>
+      <p>
+        Unlike many online calculators that use simplified approximations, StarChart employs the same astronomical algorithms used in professional planetarium software, ensuring accuracy within one arcminute (1/60th of a degree).
+      </p>
+    </section>
+
+    <section class="content-section">
+      <h2>The Three Wisdom Systems</h2>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">♈</div>
+          <h4>Western Astrology</h4>
+          <p>Sun, Moon, Rising, and all planetary positions with aspects</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">◎</div>
+          <h4>Human Design</h4>
+          <p>Type, Strategy, Authority, and your unique bodygraph</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">✦</div>
+          <h4>Gene Keys</h4>
+          <p>Your Golden Path with shadow, gift, and siddhi</p>
+        </div>
+      </div>
+
+      <h3>Western Astrology</h3>
+      <p>
+        The oldest of the three systems, Western astrology maps the positions of celestial bodies at the moment of your birth. StarChart calculates your complete natal chart including:
+      </p>
+      <ul>
+        <li>Sun, Moon, and Rising (Ascendant) signs - your "Big Three"</li>
+        <li>All planetary positions: Mercury through Pluto</li>
+        <li>Lunar Nodes (North and South)</li>
+        <li>Midheaven (MC) for career and public life</li>
+        <li>Element and modality balance</li>
+      </ul>
+
+      <h3>Human Design</h3>
+      <p>
+        Synthesized in 1987 by Ra Uru Hu, Human Design combines astrology, the I Ching, Kabbalah, and the Hindu Chakra system. It reveals your energetic blueprint:
+      </p>
+      <ul>
+        <li><strong>Type</strong> - Your fundamental energy pattern (Generator, Projector, Manifestor, Reflector, or Manifesting Generator)</li>
+        <li><strong>Strategy</strong> - How you're designed to make decisions</li>
+        <li><strong>Authority</strong> - Your inner guidance system</li>
+        <li><strong>Profile</strong> - Your costume in life's play</li>
+        <li><strong>Centers, Gates, and Channels</strong> - Your unique circuitry</li>
+        <li><strong>Incarnation Cross</strong> - Your life theme</li>
+      </ul>
+
+      <h3>Gene Keys</h3>
+      <p>
+        Created by Richard Rudd as an evolution of Human Design, Gene Keys focuses on the transformational journey from shadow to gift to siddhi. StarChart calculates your complete Golden Path:
+      </p>
+      <ul>
+        <li><strong>Activation Sequence</strong> - Life's Work, Evolution, Radiance, Purpose</li>
+        <li><strong>Venus Sequence</strong> - Attraction, IQ, EQ, SQ (relationships)</li>
+        <li><strong>Pearl Sequence</strong> - Vocation, Culture, Pearl (prosperity)</li>
+      </ul>
+    </section>
+
+    <section class="content-section">
+      <h2>Technical Accuracy</h2>
+      <p>
+        StarChart uses the <a href="https://github.com/cosinekitty/astronomy" target="_blank">astronomy-engine</a> library, which implements VSOP87 planetary theory - the same algorithms used by NASA and professional observatories.
+      </p>
+      <ul>
+        <li>Planetary positions accurate to ±1 arcminute</li>
+        <li>Ascendant calculated from precise local sidereal time</li>
+        <li>Based on Jean Meeus' "Astronomical Algorithms"</li>
+        <li>All calculations run locally in your browser</li>
+      </ul>
+    </section>
+
+    <section class="content-section">
+      <h2>Open Source Philosophy</h2>
+      <p>
+        StarChart is completely open source under the MIT license. This means:
+      </p>
+      <ul>
+        <li>Free to use for any purpose</li>
+        <li>Full source code available on <a href="https://github.com/unforced/starchart" target="_blank">GitHub</a></li>
+        <li>No tracking, analytics, or data collection</li>
+        <li>All calculations happen in your browser - no data leaves your device</li>
+        <li>You can fork, modify, and build upon this project</li>
+      </ul>
+      <p>
+        We believe cosmic wisdom should be accessible to everyone, without paywalls or privacy concerns.
+      </p>
+    </section>
+
+    <section class="content-section">
+      <h2>Disclaimer</h2>
+      <p>
+        StarChart is provided for entertainment and self-reflection purposes. The wisdom systems it calculates are not scientifically validated and should not be used for medical, legal, financial, or other consequential decisions.
+      </p>
+      <p>
+        That said, many find these systems valuable tools for self-understanding and personal growth. Use what resonates with you.
+      </p>
+    </section>
+
+    <footer style="text-align: center; padding: 2rem 0; color: var(--text-secondary); font-size: 0.9rem;">
+      <p>StarChart is <a href="https://github.com/unforced/starchart" target="_blank" style="color: var(--accent);">open source</a></p>
+    </footer>
+  </div>
+</body>
+</html>

@@ -1,13 +1,33 @@
 {
-  "name": "birthcode",
+  "name": "starchart",
   "version": "0.1.0",
-  "description": "Open source birth-based personality calculator",
+  "description": "Open source cosmic blueprint calculator - Western Astrology, Human Design, and Gene Keys with astronomical precision",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/unforced/starchart.git"
+  },
+  "homepage": "https://unforced.github.io/starchart/",
+  "bugs": {
+    "url": "https://github.com/unforced/starchart/issues"
+  },
+  "keywords": [
+    "astrology",
+    "human-design",
+    "gene-keys",
+    "birth-chart",
+    "natal-chart",
+    "astronomy",
+    "mcp",
+    "open-source"
+  ],
+  "author": "unforced",
+  "license": "MIT",
   "devDependencies": {
     "vite": "^5.0.0"
   },

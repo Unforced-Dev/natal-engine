@@ -1,0 +1,33 @@
+{
+  "name": "@starchart/mcp-server",
+  "version": "0.1.0",
+  "description": "MCP server for StarChart - calculate Western Astrology, Human Design, and Gene Keys charts",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "starchart-mcp": "./src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "astrology",
+    "human-design",
+    "gene-keys",
+    "birth-chart",
+    "claude"
+  ],
+  "author": "unforced",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/unforced/starchart.git",
+    "directory": "mcp-server"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "astronomy-engine": "^2.1.19"
+  }
+}

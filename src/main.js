@@ -1,5 +1,5 @@
 /**
- * BirthCode Calculator - Main Entry Point
+ * StarChart Calculator - Main Entry Point
  * Connects all calculators to the UI
  */
 
@@ -33,7 +33,7 @@ async function searchLocations(query) {
   try {
     const response = await fetch(
       `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`,
-      { headers: { 'User-Agent': 'BirthCode Calculator' } }
+      { headers: { 'User-Agent': 'StarChart Calculator' } }
     );
     const data = await response.json();
 
@@ -601,7 +601,7 @@ function renderGeneKeys(data) {
 }
 
 // Main calculation function
-async function calculateBirthCode(birthDate, birthTime, manualCoords) {
+async function calculateStarChart(birthDate, birthTime, manualCoords) {
   // Parse time
   const timeParts = birthTime.split(':');
   const birthHour = parseInt(timeParts[0], 10) + (parseInt(timeParts[1], 10) / 60);
@@ -640,7 +640,7 @@ async function calculateBirthCode(birthDate, birthTime, manualCoords) {
   resultsSection.scrollIntoView({ behavior: 'smooth' });
 
   // Log full data for debugging
-  console.log('BirthCode Data:', {
+  console.log('StarChart Data:', {
     astrology,
     humanDesign,
     geneKeys
@@ -689,7 +689,7 @@ form.addEventListener('submit', async (e) => {
   });
 
   try {
-    await calculateBirthCode(
+    await calculateStarChart(
       birthDate,
       birthTime,
       { lat: parseFloat(latitude), lon: parseFloat(longitude) }
@@ -704,4 +704,4 @@ form.addEventListener('submit', async (e) => {
 
 // Initialize
 setupLocationAutocomplete();
-console.log('BirthCode Calculator loaded');
+console.log('StarChart Calculator loaded');

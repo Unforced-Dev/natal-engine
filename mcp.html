@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MCP Server - StarChart</title>
+  <meta name="description" content="Add StarChart to your AI assistant using the Model Context Protocol (MCP). Calculate birth charts directly from Claude and other AI tools.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌌</text></svg>">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="main-nav">
+    <a href="/" class="nav-logo">StarChart</a>
+    <div class="nav-links">
+      <a href="/" class="nav-link">Calculator</a>
+      <a href="/about.html" class="nav-link">About</a>
+      <a href="/docs.html" class="nav-link">Docs</a>
+      <a href="/mcp.html" class="nav-link active">MCP</a>
+      <a href="https://github.com/unforced/starchart" class="nav-link nav-github" target="_blank">GitHub</a>
+    </div>
+  </nav>
+
+  <!-- Cosmic Background -->
+  <div class="cosmic-bg">
+    <div class="stars"></div>
+    <div class="stars"></div>
+    <div class="nebula"></div>
+  </div>
+
+  <div class="page-container">
+    <div class="page-header">
+      <h1>MCP Server</h1>
+      <p>Add cosmic wisdom to your AI assistant</p>
+    </div>
+
+    <section class="content-section">
+      <h2>What is MCP?</h2>
+      <p>
+        The <a href="https://modelcontextprotocol.io" target="_blank">Model Context Protocol</a> (MCP) is an open standard that allows AI assistants to connect to external tools and data sources. By adding the StarChart MCP server, your AI can calculate birth charts on demand.
+      </p>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🤖</div>
+          <h4>Claude Code</h4>
+          <p>Works with Claude Code CLI</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h4>Instant Charts</h4>
+          <p>Calculate in natural language</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔐</div>
+          <h4>Local Processing</h4>
+          <p>All calculations run locally</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="content-section">
+      <h2>Quick Start</h2>
+
+      <h3>1. Clone the Repository</h3>
+      <pre><code>git clone https://github.com/unforced/starchart.git
+cd starchart/mcp-server
+npm install</code></pre>
+
+      <h3>2. Configure Claude Code</h3>
+      <p>Add to your Claude Code settings file (<code>~/.claude/settings.json</code>):</p>
+      <pre><code>{
+  "mcpServers": {
+    "starchart": {
+      "command": "node",
+      "args": ["/path/to/starchart/mcp-server/src/index.js"]
+    }
+  }
+}</code></pre>
+      <p>Replace <code>/path/to/starchart</code> with the actual path where you cloned the repository.</p>
+
+      <h3>3. Restart Claude Code</h3>
+      <p>After saving the settings, restart Claude Code to load the MCP server.</p>
+
+      <h3>4. Try It Out</h3>
+      <p>Ask Claude something like:</p>
+      <pre><code>"Calculate my birth chart for June 15, 1990 at 2:30 PM in New York City"</code></pre>
+    </section>
+
+    <section class="content-section">
+      <h2>Available Tools</h2>
+
+      <h3>calculate_starchart</h3>
+      <p>
+        The comprehensive tool that returns data from all three wisdom systems in one call.
+      </p>
+      <ul>
+        <li><code>birth_date</code> (required) - Date in YYYY-MM-DD format</li>
+        <li><code>birth_time</code> - Time in HH:MM format (24-hour)</li>
+        <li><code>latitude</code> - Birth location latitude</li>
+        <li><code>longitude</code> - Birth location longitude</li>
+        <li><code>timezone</code> - UTC offset (auto-estimated if not provided)</li>
+      </ul>
+
+      <h3>calculate_astrology</h3>
+      <p>Western natal chart with Sun, Moon, Rising, all planets, and aspects.</p>
+
+      <h3>calculate_human_design</h3>
+      <p>Human Design chart with Type, Strategy, Authority, Profile, Gates, and Channels.</p>
+
+      <h3>calculate_gene_keys</h3>
+      <p>Gene Keys profile with all three sequences (Activation, Venus, Pearl).</p>
+
+      <h3>get_planetary_positions</h3>
+      <p>Raw astronomical data for all celestial bodies.</p>
+    </section>
+
+    <section class="content-section">
+      <h2>Example Prompts</h2>
+      <p>Once configured, try these prompts with Claude:</p>
+      <ul>
+        <li>"What's my Human Design type if I was born on March 21, 1985 at 6:00 AM in Los Angeles?"</li>
+        <li>"Calculate the Gene Keys for someone born December 25, 1992 at 11:30 PM in London"</li>
+        <li>"Show me the complete StarChart for August 15, 1988, 3:30 PM, Tokyo Japan"</li>
+        <li>"What are the planetary positions for July 4, 1976 at noon in Philadelphia?"</li>
+        <li>"Can you explain my birth chart? I was born on September 6, 1992 at 12:04 AM in Portland, Oregon"</li>
+      </ul>
+    </section>
+
+    <section class="content-section">
+      <h2>How It Works</h2>
+      <p>
+        When you ask Claude about birth charts, it uses the StarChart MCP tools to:
+      </p>
+      <ol>
+        <li>Parse your natural language query for birth data</li>
+        <li>Call the appropriate calculation tool(s)</li>
+        <li>Receive the structured chart data</li>
+        <li>Format a helpful response with your results</li>
+      </ol>
+      <p>
+        All calculations happen locally on your machine using the same high-precision astronomy engine as the web calculator. No birth data is sent to external servers.
+      </p>
+    </section>
+
+    <section class="content-section">
+      <h2>Troubleshooting</h2>
+
+      <h3>Server not found</h3>
+      <p>
+        Make sure the path in your settings.json is correct and absolute (starts with /). Check that you've run <code>npm install</code> in the mcp-server directory.
+      </p>
+
+      <h3>Tools not appearing</h3>
+      <p>
+        Try restarting Claude Code completely. You can verify the server works by running it directly:
+      </p>
+      <pre><code>node /path/to/starchart/mcp-server/src/index.js</code></pre>
+      <p>You should see "StarChart MCP Server running on stdio" in the console.</p>
+
+      <h3>Calculation errors</h3>
+      <p>
+        Ensure dates are in YYYY-MM-DD format and times are in 24-hour HH:MM format. The birth_date parameter is required for all tools.
+      </p>
+    </section>
+
+    <section class="content-section">
+      <h2>Build Your Own</h2>
+      <p>
+        The MCP server source code is fully available if you want to customize or extend it:
+      </p>
+      <ul>
+        <li><a href="https://github.com/unforced/starchart/tree/main/mcp-server" target="_blank">MCP Server Source</a></li>
+        <li><a href="https://modelcontextprotocol.io/docs" target="_blank">MCP Documentation</a></li>
+        <li><a href="https://github.com/modelcontextprotocol/typescript-sdk" target="_blank">MCP TypeScript SDK</a></li>
+      </ul>
+    </section>
+
+    <footer style="text-align: center; padding: 2rem 0; color: var(--text-secondary); font-size: 0.9rem;">
+      <p>StarChart is <a href="https://github.com/unforced/starchart" target="_blank" style="color: var(--accent);">open source</a></p>
+    </footer>
+  </div>
+</body>
+</html>

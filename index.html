@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BirthCode - Discover Your Cosmic Blueprint</title>
+  <title>StarChart - Discover Your Cosmic Blueprint</title>
   <meta name="description" content="Unlock your cosmic blueprint with Western Astrology, Human Design, and Gene Keys - astronomical precision meets ancient wisdom.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,6 +12,18 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌌</text></svg>">
 </head>
 <body>
+  <!-- Navigation -->
+  <nav class="main-nav">
+    <a href="/" class="nav-logo">StarChart</a>
+    <div class="nav-links">
+      <a href="/" class="nav-link active">Calculator</a>
+      <a href="/about.html" class="nav-link">About</a>
+      <a href="/docs.html" class="nav-link">Docs</a>
+      <a href="/mcp.html" class="nav-link">MCP</a>
+      <a href="https://github.com/unforced/starchart" class="nav-link nav-github" target="_blank">GitHub</a>
+    </div>
+  </nav>
+
   <!-- Cosmic Background -->
   <div class="cosmic-bg">
     <div class="stars"></div>
@@ -23,7 +35,7 @@
   <div class="container">
     <header>
       <div class="logo-icon">🌌</div>
-      <h1 class="logo">BirthCode</h1>
+      <h1 class="logo">StarChart</h1>
       <p class="subtitle">Discover your cosmic blueprint</p>
       <div class="tagline">
         <span class="tagline-item"><span class="icon">⭐</span> 3 Wisdom Systems</span>
@@ -70,12 +82,12 @@
           </div>
         </div>
         <button type="button" class="toggle-coords" onclick="toggleCoordinates()">Enter coordinates manually</button>
-        <button type="submit" class="calculate-btn">Calculate BirthCode</button>
+        <button type="submit" class="calculate-btn">Calculate StarChart</button>
       </form>
     </section>
 
     <section class="results-section" id="results" style="display: none;">
-      <h2>Your BirthCode</h2>
+      <h2>Your StarChart</h2>
 
       <div class="result-grid two-column">
         <!-- Left Column: Western Astrology -->
@@ -102,7 +114,7 @@
     </section>
 
     <footer>
-      <p>BirthCode is <a href="https://github.com" target="_blank">open source</a> · Calculations use Meeus Astronomical Algorithms</p>
+      <p>StarChart is <a href="https://github.com/unforced/starchart" target="_blank">open source</a> · Calculations use Meeus Astronomical Algorithms</p>
       <p style="margin-top: 0.5rem; font-size: 0.75rem;">For entertainment and self-reflection purposes</p>
     </footer>
   </div>
