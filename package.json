@@ -1,0 +1,17 @@
+{
+  "name": "birthcode",
+  "version": "0.1.0",
+  "description": "Open source birth-based personality calculator",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  },
+  "dependencies": {
+    "astronomy-engine": "^2.1.19"
+  }
+}

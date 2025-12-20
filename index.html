@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BirthCode - Discover Your Cosmic Blueprint</title>
+  <meta name="description" content="Unlock your cosmic blueprint with Western Astrology, Human Design, and Gene Keys - astronomical precision meets ancient wisdom.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌌</text></svg>">
+</head>
+<body>
+  <!-- Cosmic Background -->
+  <div class="cosmic-bg">
+    <div class="stars"></div>
+    <div class="stars"></div>
+    <div class="stars"></div>
+    <div class="nebula"></div>
+  </div>
+
+  <div class="container">
+    <header>
+      <div class="logo-icon">🌌</div>
+      <h1 class="logo">BirthCode</h1>
+      <p class="subtitle">Discover your cosmic blueprint</p>
+      <div class="tagline">
+        <span class="tagline-item"><span class="icon">⭐</span> 3 Wisdom Systems</span>
+        <span class="tagline-item"><span class="icon">🎯</span> Astronomical Accuracy</span>
+        <span class="tagline-item"><span class="icon">🔓</span> Open Source</span>
+      </div>
+    </header>
+
+    <section class="input-section">
+      <h2>Enter Your Birth Information</h2>
+      <form id="birth-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="birth-date">Birth Date</label>
+            <input type="date" id="birth-date" required>
+          </div>
+          <div class="form-group">
+            <label for="birth-time">Birth Time</label>
+            <input type="time" id="birth-time" value="12:00">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group location-group">
+            <label for="birth-city">Birth City</label>
+            <div class="location-input-wrapper">
+              <input type="text" id="birth-city" placeholder="Start typing a city..." autocomplete="off">
+              <div class="location-dropdown" id="location-dropdown"></div>
+            </div>
+            <div class="location-selected" id="location-selected"></div>
+          </div>
+        </div>
+        <div class="form-row coordinates-row" style="display: none;">
+          <div class="form-group">
+            <label for="latitude">Latitude</label>
+            <input type="number" id="latitude" step="0.0001" placeholder="40.7128">
+          </div>
+          <div class="form-group">
+            <label for="longitude">Longitude</label>
+            <input type="number" id="longitude" step="0.0001" placeholder="-74.0060">
+          </div>
+          <div class="form-group">
+            <label for="timezone">Timezone (UTC offset)</label>
+            <input type="number" id="timezone" step="0.5" value="0" placeholder="-5">
+          </div>
+        </div>
+        <button type="button" class="toggle-coords" onclick="toggleCoordinates()">Enter coordinates manually</button>
+        <button type="submit" class="calculate-btn">Calculate BirthCode</button>
+      </form>
+    </section>
+
+    <section class="results-section" id="results" style="display: none;">
+      <h2>Your BirthCode</h2>
+
+      <div class="result-grid two-column">
+        <!-- Left Column: Western Astrology -->
+        <div class="column left-column">
+          <div class="result-card full-height" id="astrology-card">
+            <h3><span class="card-icon">♈</span> Western Astrology</h3>
+            <div class="result-content" id="astrology-result"></div>
+          </div>
+        </div>
+
+        <!-- Right Column: Human Design + Gene Keys -->
+        <div class="column right-column">
+          <div class="result-card" id="humandesign-card">
+            <h3><span class="card-icon">◎</span> Human Design</h3>
+            <div class="result-content" id="humandesign-result"></div>
+          </div>
+
+          <div class="result-card" id="genekeys-card">
+            <h3><span class="card-icon">✦</span> Gene Keys</h3>
+            <div class="result-content" id="genekeys-result"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p>BirthCode is <a href="https://github.com" target="_blank">open source</a> · Calculations use Meeus Astronomical Algorithms</p>
+      <p style="margin-top: 0.5rem; font-size: 0.75rem;">For entertainment and self-reflection purposes</p>
+    </footer>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
