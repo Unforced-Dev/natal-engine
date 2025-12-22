@@ -1100,3 +1100,273 @@ footer a:hover {
 
 /* Cosmic bg - removed */
 .cosmic-bg { display: none; }
+
+/* HD Description boxes */
+.hd-description {
+  padding: 0.75rem;
+  background: var(--bg-subtle);
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+}
+
+.hd-description:last-child {
+  margin-bottom: 0;
+}
+
+.hd-description h4 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.35rem;
+}
+
+.hd-description p {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Centers list */
+.centers-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.center-tag {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text);
+  cursor: help;
+}
+
+/* Enhanced channels list */
+.channels-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.channel-item {
+  display: grid;
+  grid-template-columns: 60px 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.5rem;
+  background: var(--bg-subtle);
+  border-radius: 6px;
+}
+
+.channel-gates {
+  font-family: 'SF Mono', monospace;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--humandesign);
+}
+
+.channel-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.channel-theme {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+/* Unified Cross-System Summary */
+.unified-summary {
+  background: var(--bg-card);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.unified-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.unified-header h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.unified-subtitle {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.unified-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.unified-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.unified-planet {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.unified-planet-symbol {
+  font-size: 1.5rem;
+}
+
+.unified-planet-name {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.unified-systems {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.unified-system {
+  padding: 0.6rem;
+  border-radius: 6px;
+  background: var(--bg-subtle);
+  border-left: 3px solid var(--border);
+}
+
+.unified-system.astrology {
+  border-left-color: var(--astrology);
+}
+
+.unified-system.humandesign {
+  border-left-color: var(--humandesign);
+}
+
+.unified-system.genekeys {
+  border-left-color: var(--genekeys);
+}
+
+.unified-system .system-label {
+  display: block;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 0.15rem;
+}
+
+.unified-system .system-value {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.1rem;
+}
+
+.unified-system .system-desc {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.unified-essence {
+  text-align: center;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(59, 130, 246, 0.1), rgba(16, 185, 129, 0.1));
+  border-radius: 8px;
+}
+
+.essence-title {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.essence-content {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.essence-type {
+  font-weight: 700;
+  color: var(--humandesign);
+}
+
+.essence-sun {
+  font-weight: 600;
+  color: var(--astrology);
+}
+
+.essence-gift {
+  font-weight: 600;
+  color: var(--genekeys);
+}
+
+@media (max-width: 600px) {
+  .unified-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Print styles */
+@media print {
+  .main-nav,
+  .input-section,
+  .export-btn,
+  .theme-toggle,
+  footer {
+    display: none !important;
+  }
+
+  .results-section {
+    display: block !important;
+  }
+
+  .tab-panel {
+    display: block !important;
+    page-break-inside: avoid;
+    margin-bottom: 2rem;
+  }
+
+  .tabs-nav {
+    display: none;
+  }
+
+  .tabs-container {
+    border: none;
+    background: none;
+  }
+
+  .collapsible[open] {
+    page-break-inside: avoid;
+  }
+
+  body {
+    background: white;
+    color: black;
+  }
+
+  .result-card {
+    break-inside: avoid;
+    border: 1px solid #ddd;
+    margin-bottom: 1rem;
+  }
+}

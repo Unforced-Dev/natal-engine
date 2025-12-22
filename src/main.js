@@ -20,6 +20,34 @@ let calculatedData = {
 const form = document.getElementById('birth-form');
 const resultsSection = document.getElementById('results');
 
+// URL Parameter Handling
+function getURLParams() {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    date: params.get('date'),
+    time: params.get('time'),
+    lat: params.get('lat'),
+    lng: params.get('lng'),
+    tz: params.get('tz'),
+    name: params.get('name')
+  };
+}
+
+function updateURL(date, time, lat, lng, tz, locationName) {
+  const params = new URLSearchParams();
+  params.set('date', date);
+  params.set('time', time);
+  params.set('lat', lat.toFixed(4));
+  params.set('lng', lng.toFixed(4));
+  params.set('tz', tz.toString());
+  if (locationName) {
+    params.set('name', locationName);
+  }
+
+  const newURL = `${window.location.pathname}?${params.toString()}`;
+  window.history.pushState({ path: newURL }, '', newURL);
+}
+
 // Location state
 let selectedLocation = null;
 
@@ -329,13 +357,44 @@ function renderHumanDesign(data) {
     `;
   }).join('');
 
-  // Channels
+  // Enhanced channels with names and themes
   const channelsHtml = data.channels.length > 0
-    ? data.channels.map(c => `<span style="margin-right: 0.75rem; font-family: 'SF Mono', monospace; font-size: 0.8rem;">${c.gates.join('-')}</span>`).join('')
-    : '<span style="color: var(--text-muted);">None</span>';
+    ? data.channels.map(c => `
+        <div class="channel-item">
+          <span class="channel-gates">${c.gates.join('-')}</span>
+          <span class="channel-name">${c.name}</span>
+          <span class="channel-theme">${c.theme}</span>
+        </div>
+      `).join('')
+    : '<span style="color: var(--text-muted);">No complete channels</span>';
 
-  // Defined centers
-  const definedCentersHtml = data.centers.defined.map(c => c.name).join(', ') || 'None';
+  // Defined centers with themes
+  const definedCentersHtml = data.centers.defined.length > 0
+    ? data.centers.defined.map(c => `<span class="center-tag" title="${c.theme}">${c.name}</span>`).join('')
+    : '<span style="color: var(--text-muted);">None (Reflector)</span>';
+
+  // Type description based on type
+  const typeDescriptions = {
+    'Generator': 'You have sustainable life force energy. Your strategy is to wait for things to come to you and respond with your gut. When you follow what lights you up, you find satisfaction.',
+    'Manifesting Generator': 'You have powerful multi-passionate energy. Wait to respond, then inform others before acting. You can move quickly once you get a clear gut response.',
+    'Projector': 'You are here to guide and manage others. Wait for recognition and invitation before sharing your insights. Success comes through being seen and valued.',
+    'Manifestor': 'You are designed to initiate and impact. Inform others before you act to reduce resistance. Peace comes from following your urges while keeping others in the loop.',
+    'Reflector': 'You are a mirror for the community. Wait a full lunar cycle (28 days) before making major decisions. Surprise and delight come from finding the right environment.'
+  };
+
+  // Authority description
+  const authorityDescriptions = {
+    'Emotional Authority': 'Ride your emotional wave before deciding. Never make important decisions in the moment—wait for clarity over time.',
+    'Sacral Authority': 'Trust your gut responses. Listen for the "uh-huh" (yes) or "uh-uh" (no) sounds that arise spontaneously.',
+    'Splenic Authority': 'Trust your instant intuitive knowing. Your body knows in the moment—don\'t second-guess that first hit.',
+    'Ego/Heart Authority': 'Ask yourself "Do I really want this?" Your willpower knows what\'s right for you.',
+    'Self-Projected Authority': 'Talk things out and hear your own voice. Your truth becomes clear when you speak it.',
+    'Mental/Environment': 'Discuss decisions with trusted others. Notice how different environments affect your clarity.',
+    'Lunar Authority': 'Wait through a full lunar cycle. Sample different perspectives over 28 days before deciding.'
+  };
+
+  const typeDesc = typeDescriptions[data.type.name] || data.type.description || '';
+  const authDesc = authorityDescriptions[data.authority.name] || data.authority.description || '';
 
   container.innerHTML = `
     <div class="chart-wrapper"></div>
@@ -343,7 +402,7 @@ function renderHumanDesign(data) {
     <div class="hd-summary">
       <div class="hd-type-badge">
         <div class="type">${data.type.name}</div>
-        <div class="strategy">${data.type.strategy}</div>
+        <div class="strategy">Strategy: ${data.type.strategy}</div>
       </div>
       <div class="hd-summary-item">
         <div class="hd-summary-label">Authority</div>
@@ -363,8 +422,35 @@ function renderHumanDesign(data) {
       </div>
     </div>
 
+    <details class="collapsible" open>
+      <summary>About Your Type & Authority</summary>
+      <div class="collapsible-content">
+        <div class="hd-description">
+          <h4>${data.type.name}</h4>
+          <p>${typeDesc}</p>
+        </div>
+        <div class="hd-description">
+          <h4>${data.authority.name}</h4>
+          <p>${authDesc}</p>
+        </div>
+        <div class="hd-description">
+          <h4>Profile: ${data.profile.numbers} ${data.profile.name}</h4>
+          <p>${data.profile.theme || 'Your unique way of interacting with the world.'}</p>
+        </div>
+      </div>
+    </details>
+
     <div class="section-title">Defined Centers</div>
-    <p style="font-size: 0.8rem; margin-bottom: 0.5rem;">${definedCentersHtml}</p>
+    <div class="centers-list">${definedCentersHtml}</div>
+
+    <details class="collapsible">
+      <summary>Channels (${data.channels.length})</summary>
+      <div class="collapsible-content">
+        <div class="channels-list">
+          ${channelsHtml}
+        </div>
+      </div>
+    </details>
 
     <details class="collapsible">
       <summary>Gates (All 13 Planets)</summary>
@@ -381,15 +467,6 @@ function renderHumanDesign(data) {
             ${gatesTableRows}
           </tbody>
         </table>
-      </div>
-    </details>
-
-    <details class="collapsible">
-      <summary>Channels (${data.channels.length})</summary>
-      <div class="collapsible-content">
-        <div style="margin-top: 0.25rem;">
-          ${channelsHtml}
-        </div>
       </div>
     </details>
   `;
@@ -489,21 +566,99 @@ function renderGeneKeys(data) {
   renderGeneKeysChart(chartWrapper, data);
 }
 
+// Render Unified Cross-System Summary
+function renderUnifiedSummary(astrology, humanDesign, geneKeys) {
+  const container = document.getElementById('unified-summary');
+
+  // Get key data from each system
+  const sunSign = astrology.sun.sign;
+  const sunGate = humanDesign.gates.personality.sun;
+  const lifeWork = geneKeys.activationSequence.lifeWork;
+
+  // Moon data
+  const moonSign = astrology.moon.sign;
+  const moonGate = humanDesign.gates.personality.moon;
+
+  container.innerHTML = `
+    <div class="unified-header">
+      <h2>Your Cosmic Blueprint</h2>
+      <p class="unified-subtitle">How the same celestial positions manifest across three wisdom traditions</p>
+    </div>
+
+    <div class="unified-grid">
+      <div class="unified-column">
+        <div class="unified-planet">
+          <span class="unified-planet-symbol">☉</span>
+          <span class="unified-planet-name">Sun</span>
+        </div>
+        <div class="unified-systems">
+          <div class="unified-system astrology">
+            <span class="system-label">Astrology</span>
+            <span class="system-value">${sunSign.symbol} ${sunSign.name}</span>
+            <span class="system-desc">Core identity & ego expression</span>
+          </div>
+          <div class="unified-system humandesign">
+            <span class="system-label">Human Design</span>
+            <span class="system-value">Gate ${sunGate?.gate}.${sunGate?.line}</span>
+            <span class="system-desc">${sunGate?.name || ''} - ${sunGate?.theme || ''}</span>
+          </div>
+          <div class="unified-system genekeys">
+            <span class="system-label">Gene Keys</span>
+            <span class="system-value">Key ${lifeWork.key}: ${lifeWork.gift}</span>
+            <span class="system-desc">${lifeWork.shadow} → ${lifeWork.gift} → ${lifeWork.siddhi}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="unified-column">
+        <div class="unified-planet">
+          <span class="unified-planet-symbol">☽</span>
+          <span class="unified-planet-name">Moon</span>
+        </div>
+        <div class="unified-systems">
+          <div class="unified-system astrology">
+            <span class="system-label">Astrology</span>
+            <span class="system-value">${moonSign.symbol} ${moonSign.name}</span>
+            <span class="system-desc">Emotional needs & instincts</span>
+          </div>
+          <div class="unified-system humandesign">
+            <span class="system-label">Human Design</span>
+            <span class="system-value">Gate ${moonGate?.gate}.${moonGate?.line}</span>
+            <span class="system-desc">${moonGate?.name || ''} - ${moonGate?.theme || ''}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="unified-essence">
+      <div class="essence-title">Your Essence</div>
+      <div class="essence-content">
+        <span class="essence-type">${humanDesign.type.name}</span> with
+        <span class="essence-sun">${sunSign.name} Sun</span> expressing through
+        <span class="essence-gift">${lifeWork.gift}</span>
+      </div>
+    </div>
+  `;
+}
+
 // Main calculation
-async function calculateNatalChart(birthDate, birthTime, manualCoords) {
+async function calculateNatalChart(birthDate, birthTime, manualCoords, skipURLUpdate = false) {
   const timeParts = birthTime.split(':');
   const birthHour = parseInt(timeParts[0], 10) + (parseInt(timeParts[1], 10) / 60);
 
   let location = null;
   let timezone = 0;
+  let locationName = null;
 
   if (manualCoords.lat && manualCoords.lon && !isNaN(manualCoords.lat)) {
     location = { lat: manualCoords.lat, lon: manualCoords.lon };
-    timezone = Math.round(location.lon / 15);
+    timezone = manualCoords.tz !== undefined ? manualCoords.tz : Math.round(location.lon / 15);
+    locationName = manualCoords.name || null;
   } else if (selectedLocation) {
     location = { lat: selectedLocation.lat, lon: selectedLocation.lon };
     // Use stored timezone with DST adjustment
     timezone = selectedLocation.timezone + (selectedLocation.isDST ? 1 : 0);
+    locationName = selectedLocation.name;
   }
 
   // Calculate
@@ -522,12 +677,21 @@ async function calculateNatalChart(birthDate, birthTime, manualCoords) {
   calculatedData = { astrology, humandesign: humanDesign, genekeys: geneKeys };
 
   // Render
+  renderUnifiedSummary(astrology, humanDesign, geneKeys);
   renderAstrology(astrology);
   renderHumanDesign(humanDesign);
   renderGeneKeys(geneKeys);
 
   resultsSection.style.display = 'block';
-  resultsSection.scrollIntoView({ behavior: 'smooth' });
+
+  // Update URL with chart parameters (unless loading from URL)
+  if (!skipURLUpdate && location) {
+    updateURL(birthDate, birthTime, location.lat, location.lon, timezone, locationName);
+  }
+
+  if (!skipURLUpdate) {
+    resultsSection.scrollIntoView({ behavior: 'smooth' });
+  }
 
   console.log('NatalEngine Data:', calculatedData);
 }
@@ -656,10 +820,67 @@ function initTabs() {
   });
 }
 
+// Initialize from URL parameters if present
+async function initFromURL() {
+  const params = getURLParams();
+
+  if (params.date && params.lat && params.lng) {
+    // Populate form fields
+    document.getElementById('birth-date').value = params.date;
+    document.getElementById('birth-time').value = params.time || '12:00';
+
+    // Show location info
+    const selectedDiv = document.getElementById('location-selected');
+    const input = document.getElementById('birth-city');
+    const lat = parseFloat(params.lat);
+    const lng = parseFloat(params.lng);
+    const tz = parseInt(params.tz) || Math.round(lng / 15);
+    const tzStr = tz >= 0 ? `UTC+${tz}` : `UTC${tz}`;
+
+    selectedDiv.innerHTML = `
+      <span>${params.name || 'Custom Location'}</span>
+      <span class="location-coords">(${lat.toFixed(2)}, ${lng.toFixed(2)} ${tzStr})</span>
+      <button type="button" class="clear-location" title="Clear">×</button>
+    `;
+    selectedDiv.classList.add('active');
+    input.placeholder = 'Change location...';
+
+    selectedDiv.querySelector('.clear-location').addEventListener('click', () => {
+      selectedLocation = null;
+      selectedDiv.classList.remove('active');
+      input.placeholder = 'Search city...';
+      // Clear URL params
+      window.history.pushState({}, '', window.location.pathname);
+    });
+
+    // Show loading state
+    document.querySelectorAll('.result-content').forEach(el => {
+      el.innerHTML = '<div class="loading">Calculating...</div>';
+    });
+    resultsSection.style.display = 'block';
+
+    // Calculate with URL parameters (skip URL update since we're loading from URL)
+    try {
+      await calculateNatalChart(
+        params.date,
+        params.time || '12:00',
+        { lat, lon: lng, tz, name: params.name },
+        true // skipURLUpdate
+      );
+    } catch (error) {
+      console.error('Error loading from URL:', error);
+      document.querySelectorAll('.result-content').forEach(el => {
+        el.innerHTML = `<div class="loading">Error: ${error.message}</div>`;
+      });
+    }
+  }
+}
+
 // Initialize
 setupLocationAutocomplete();
 initDarkMode();
 initTabs();
+initFromURL();
 
 // Auto-update DST when birth date changes
 document.getElementById('birth-date').addEventListener('change', (e) => {
