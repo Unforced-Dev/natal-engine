@@ -143,18 +143,25 @@ export function calculateAscendant(jd, latitude, longitude) {
   const latRad = latitude * DEG_TO_RAD;
   const oblRad = OBLIQUITY * DEG_TO_RAD;
 
-  // tan(ASC) = cos(RAMC) / -(sin(ε) * tan(φ) + cos(ε) * sin(RAMC))
-  const numerator = Math.cos(RAMC_rad);
-  const denominator = -(Math.sin(oblRad) * Math.tan(latRad) + Math.cos(oblRad) * Math.sin(RAMC_rad));
+  // Using atan2 for proper quadrant handling
+  // y = cos(RAMC), x = -(sin(ε) * tan(φ) + cos(ε) * sin(RAMC))
+  const y = Math.cos(RAMC_rad);
+  const x = -(Math.sin(oblRad) * Math.tan(latRad) + Math.cos(oblRad) * Math.sin(RAMC_rad));
 
-  let asc = Math.atan(numerator / denominator) * RAD_TO_DEG;
+  let asc = Math.atan2(y, x) * RAD_TO_DEG;
+  asc = normalizeAngle(asc);
 
-  // Quadrant correction: if denominator < 0, add 180°
-  if (denominator < 0) {
-    asc += 180;
+  // MC-based correction: ASC must be within 180° following MC in zodiacal order
+  // This ensures the ascendant is on the eastern horizon
+  const mc = calculateMidheaven(jd, longitude);
+  let diff = normalizeAngle(asc - mc);
+
+  // If ASC is more than 180° from MC, add 180° to correct
+  if (diff > 180) {
+    asc = normalizeAngle(asc + 180);
   }
 
-  return normalizeAngle(asc);
+  return asc;
 }
 
 /**

@@ -159,6 +159,138 @@ const MODALITIES = {
   Mutable: { signs: ['Gemini', 'Virgo', 'Sagittarius', 'Pisces'], traits: 'Adapting, flexible, changing' }
 };
 
+// Aspect definitions with orbs
+const ASPECTS = {
+  conjunction: { angle: 0, orb: 8, symbol: '☌', nature: 'major', meaning: 'Fusion, intensity, focus' },
+  sextile: { angle: 60, orb: 6, symbol: '⚹', nature: 'major', meaning: 'Opportunity, harmony, ease' },
+  square: { angle: 90, orb: 8, symbol: '□', nature: 'major', meaning: 'Tension, challenge, action' },
+  trine: { angle: 120, orb: 8, symbol: '△', nature: 'major', meaning: 'Flow, talent, ease' },
+  opposition: { angle: 180, orb: 8, symbol: '☍', nature: 'major', meaning: 'Polarity, awareness, balance' },
+  quincunx: { angle: 150, orb: 3, symbol: '⚻', nature: 'minor', meaning: 'Adjustment, irritation, growth' },
+  semisextile: { angle: 30, orb: 2, symbol: '⚺', nature: 'minor', meaning: 'Subtle opportunity, mild tension' },
+  semisquare: { angle: 45, orb: 2, symbol: '∠', nature: 'minor', meaning: 'Friction, minor tension' },
+  sesquiquadrate: { angle: 135, orb: 2, symbol: '⚼', nature: 'minor', meaning: 'Agitation, persistent challenge' },
+  quintile: { angle: 72, orb: 2, symbol: 'Q', nature: 'minor', meaning: 'Creativity, talent, gifts' },
+  biquintile: { angle: 144, orb: 2, symbol: 'bQ', nature: 'minor', meaning: 'Creative expression, special ability' }
+};
+
+// Planet symbols for aspect display
+const PLANET_SYMBOLS = {
+  sun: '☉',
+  moon: '☽',
+  mercury: '☿',
+  venus: '♀',
+  mars: '♂',
+  jupiter: '♃',
+  saturn: '♄',
+  uranus: '⛢',
+  neptune: '♆',
+  pluto: '♇',
+  northNode: '☊',
+  southNode: '☋',
+  ascendant: 'Asc',
+  midheaven: 'MC'
+};
+
+/**
+ * Calculate the angular difference between two longitudes
+ * Returns the smallest angle (0-180)
+ */
+function angularDifference(long1, long2) {
+  let diff = Math.abs(long1 - long2);
+  if (diff > 180) diff = 360 - diff;
+  return diff;
+}
+
+/**
+ * Check if two planets form an aspect
+ * Returns aspect info or null
+ */
+function findAspect(planet1Name, planet1Long, planet2Name, planet2Long, includeMinor = true) {
+  const diff = angularDifference(planet1Long, planet2Long);
+
+  for (const [aspectName, aspect] of Object.entries(ASPECTS)) {
+    if (!includeMinor && aspect.nature === 'minor') continue;
+
+    const orb = Math.abs(diff - aspect.angle);
+    if (orb <= aspect.orb) {
+      // Calculate if aspect is applying or separating
+      // (simplified - would need planet speeds for accuracy)
+      const applying = planet1Long < planet2Long;
+
+      return {
+        planet1: planet1Name,
+        planet2: planet2Name,
+        aspect: aspectName,
+        symbol: aspect.symbol,
+        angle: aspect.angle,
+        orb: Math.round(orb * 100) / 100,
+        exactOrb: `${orb.toFixed(2)}°`,
+        nature: aspect.nature,
+        meaning: aspect.meaning,
+        applying
+      };
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Calculate all aspects between planets
+ */
+function calculateAspects(positions, includeMinor = true) {
+  const aspects = [];
+
+  // Build list of all points with their longitudes
+  const points = [];
+
+  // Add main planets
+  const planetNames = ['sun', 'moon', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto'];
+  for (const name of planetNames) {
+    if (positions[name]) {
+      points.push({ name, longitude: positions[name].longitude, symbol: PLANET_SYMBOLS[name] });
+    }
+  }
+
+  // Add nodes
+  if (positions.northNode) {
+    points.push({ name: 'northNode', longitude: positions.northNode.longitude, symbol: PLANET_SYMBOLS.northNode });
+  }
+
+  // Add angles if available
+  if (positions.ascendant) {
+    points.push({ name: 'ascendant', longitude: positions.ascendant.longitude, symbol: PLANET_SYMBOLS.ascendant });
+  }
+  if (positions.midheaven) {
+    points.push({ name: 'midheaven', longitude: positions.midheaven.longitude, symbol: PLANET_SYMBOLS.midheaven });
+  }
+
+  // Find all aspects between pairs
+  for (let i = 0; i < points.length; i++) {
+    for (let j = i + 1; j < points.length; j++) {
+      const aspect = findAspect(
+        points[i].name,
+        points[i].longitude,
+        points[j].name,
+        points[j].longitude,
+        includeMinor
+      );
+
+      if (aspect) {
+        aspect.planet1Symbol = points[i].symbol;
+        aspect.planet2Symbol = points[j].symbol;
+        aspects.push(aspect);
+      }
+    }
+  }
+
+  // Sort by orb (tightest aspects first)
+  aspects.sort((a, b) => a.orb - b.orb);
+
+  return aspects;
+}
+
 /**
  * Calculate Sun Sign from birth date
  */
@@ -409,6 +541,10 @@ export function calculateAstrology(birthDate, birthHour = 12, timezone = 0, lati
     };
   }
 
+  // Calculate aspects
+  const aspects = calculateAspects(positions, true);
+  const majorAspects = aspects.filter(a => a.nature === 'major');
+
   return {
     sun: {
       sign: sunSign,
@@ -427,6 +563,8 @@ export function calculateAstrology(birthDate, birthHour = 12, timezone = 0, lati
     planets,
     nodes,
     midheaven,
+    aspects: majorAspects,
+    allAspects: aspects,
     balance,
     bigThree: `${sunSign.symbol} ${sunSign.name} Sun, ${moonSign.sign.symbol} ${moonSign.sign.name} Moon, ${risingSign.sign.symbol} ${risingSign.sign.name} Rising`,
     summary: `You are a ${sunSign.name} with ${moonSign.sign.name} Moon and ${risingSign.sign.name} Rising`,
@@ -473,5 +611,5 @@ export function getCompatibility(sign1, sign2) {
   return { level: 'medium', description: compatibilityRules.challenging };
 }
 
-export { ZODIAC_SIGNS, ELEMENTS, MODALITIES };
+export { ZODIAC_SIGNS, ELEMENTS, MODALITIES, ASPECTS, PLANET_SYMBOLS };
 export default calculateAstrology;

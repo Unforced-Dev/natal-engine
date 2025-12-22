@@ -1,72 +1,160 @@
-# StarChart
+# NatalEngine
 
-**Discover your cosmic blueprint with astronomical precision.**
+Birth chart calculation engine for Western Astrology, Human Design, and Gene Keys.
 
-StarChart is an open-source calculator that combines three wisdom systems:
-- **Western Astrology** - Natal chart with Sun, Moon, Rising, and all planets
-- **Human Design** - Type, Strategy, Authority, Profile, Gates, and Channels
-- **Gene Keys** - Activation, Venus, and Pearl sequences
+Returns clean, structured data for apps and AI integrations. No interpretation, just the facts.
 
-## Live Demo
+## Install
 
-**[Try StarChart](https://unforced.github.io/starchart/)**
-
-## Features
-
-- High-precision planetary calculations using [astronomy-engine](https://github.com/cosinekitty/astronomy)
-- VSOP87-level accuracy (±1 arcminute)
-- Location-aware Rising sign and Midheaven
-- Interactive SVG Human Design bodygraph
-- Gene Keys Golden Path visualization
-- Fully client-side - no data sent to servers
-- MCP server for AI assistant integration
+```bash
+npm install natalengine
+```
 
 ## Quick Start
 
-### Web App
+```javascript
+import {
+  calculateAstrology,
+  calculateHumanDesign,
+  calculateGeneKeys
+} from 'natalengine';
 
-```bash
-# Clone the repository
-git clone https://github.com/unforced/starchart.git
-cd starchart
+// Western Astrology
+const astro = calculateAstrology('1990-06-15', 14.5, -5, 40.7128, -74.0060);
+console.log(astro.sun.sign.name);        // "Gemini"
+console.log(astro.moon.sign.name);       // "Pisces"
+console.log(astro.rising.sign.name);     // "Libra"
+console.log(astro.planets.venus.degree); // "19°08'41\""
 
-# Install dependencies
-npm install
+// Human Design
+const hd = calculateHumanDesign('1990-06-15', 14.5, -5);
+console.log(hd.type.name);               // "Manifestor"
+console.log(hd.authority.name);          // "Emotional Authority"
+console.log(hd.profile.numbers);         // "2/4"
+console.log(hd.channels);                // [{ gates: [12, 22], name: "..." }]
 
-# Start development server
-npm run dev
+// Gene Keys
+const gk = calculateGeneKeys(hd);
+console.log(gk.activationSequence.lifeWork.gift);  // "Discrimination"
+console.log(gk.activationSequence.lifeWork.shadow); // "Vanity"
+console.log(gk.activationSequence.lifeWork.siddhi); // "Purity"
 ```
 
-Open http://localhost:5173 in your browser.
+## API
 
-### Build for Production
+### calculateAstrology(birthDate, birthHour, timezone, latitude?, longitude?)
 
-```bash
-npm run build
-npm run preview
+Returns Western natal chart data.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| birthDate | string | `YYYY-MM-DD` format |
+| birthHour | number | Decimal hours (14.5 = 2:30 PM) |
+| timezone | number | UTC offset (-5 for EST) |
+| latitude | number | Optional. Required for accurate Rising sign |
+| longitude | number | Optional. Required for accurate Rising sign |
+
+**Returns:**
+
+```javascript
+{
+  sun: { sign, degree, longitude },
+  moon: { sign, degree, longitude },
+  rising: { sign, degree, longitude, accurate },
+  planets: {
+    mercury: { sign, degree, longitude },
+    venus: { sign, degree, longitude },
+    mars: { sign, degree, longitude },
+    jupiter: { sign, degree, longitude },
+    saturn: { sign, degree, longitude },
+    uranus: { sign, degree, longitude },
+    neptune: { sign, degree, longitude },
+    pluto: { sign, degree, longitude }
+  },
+  nodes: {
+    north: { sign, degree, longitude },
+    south: { sign, degree, longitude }
+  },
+  midheaven: { sign, degree, longitude },
+  aspects: [
+    { planet1, planet2, aspect, orb, applying }
+  ],
+  balance: {
+    elements: { fire, earth, air, water },
+    modalities: { cardinal, fixed, mutable },
+    dominantElement,
+    dominantModality
+  }
+}
+```
+
+### calculateHumanDesign(birthDate, birthHour, timezone)
+
+Returns Human Design chart data.
+
+**Returns:**
+
+```javascript
+{
+  type: { name, strategy, authority, notSelf, signature },
+  authority: { name, description },
+  profile: { numbers, name, theme },
+  incarnationCross: { name, gates, theme },
+  centers: {
+    defined: [{ name, theme, biological }],
+    undefined: [{ name, theme, biological }]
+  },
+  gates: {
+    personality: { sun, earth, moon, northNode, southNode, mercury, venus, mars, jupiter, saturn, uranus, neptune, pluto },
+    design: { sun, earth, moon, northNode, southNode, mercury, venus, mars, jupiter, saturn, uranus, neptune, pluto },
+    all: [1, 2, 3, ...]
+  },
+  channels: [{ gates, name, centers }]
+}
+```
+
+### calculateGeneKeys(humanDesignData)
+
+Returns Gene Keys profile from Human Design data.
+
+**Returns:**
+
+```javascript
+{
+  activationSequence: {
+    lifeWork: { key, line, shadow, gift, siddhi },
+    evolution: { key, line, shadow, gift, siddhi },
+    radiance: { key, line, shadow, gift, siddhi },
+    purpose: { key, line, shadow, gift, siddhi }
+  },
+  venusSequence: {
+    attraction: { key, line, shadow, gift, siddhi },
+    iq: { key, line, shadow, gift, siddhi },
+    eq: { key, line, shadow, gift, siddhi },
+    sq: { key, line, shadow, gift, siddhi }
+  },
+  pearlSequence: {
+    vocation: { key, line, shadow, gift, siddhi },
+    culture: { key, line, shadow, gift, siddhi },
+    pearl: { key, line, shadow, gift, siddhi }
+  }
+}
 ```
 
 ## MCP Server (AI Integration)
 
-Add StarChart to Claude Code or other MCP-compatible AI assistants.
+NatalEngine includes an MCP server for Claude and other AI assistants.
 
-### Installation
+### Usage with Claude Code
 
-```bash
-cd mcp-server
-npm install
-```
-
-### Configure Claude Code
-
-Add to `~/.claude/settings.json`:
+Add to your Claude Code settings (`~/.claude/settings.json`):
 
 ```json
 {
   "mcpServers": {
-    "starchart": {
-      "command": "node",
-      "args": ["/path/to/starchart/mcp-server/src/index.js"]
+    "natalengine": {
+      "command": "npx",
+      "args": ["natalengine-mcp"]
     }
   }
 }
@@ -75,93 +163,39 @@ Add to `~/.claude/settings.json`:
 Then ask Claude:
 > "Calculate my birth chart for June 15, 1990 at 2:30 PM in New York"
 
-See [MCP Server README](./mcp-server/README.md) for full documentation.
+### Available Tools
 
-## Project Structure
+| Tool | Description |
+|------|-------------|
+| `calculate_natal_chart` | Complete profile (all 3 systems) |
+| `calculate_astrology` | Western natal chart |
+| `calculate_human_design` | Human Design chart |
+| `calculate_gene_keys` | Gene Keys profile |
+| `get_planetary_positions` | Raw planetary longitudes |
 
-```
-starchart/
-├── index.html              # Main web app
-├── src/
-│   ├── main.js             # App entry point
-│   ├── styles.css          # Styling
-│   └── calculators/
-│       ├── astrology.js    # Western astrology
-│       ├── humandesign.js  # Human Design + Gene Keys
-│       └── astronomy.js    # Planetary calculations
-├── mcp-server/             # MCP server for AI integration
-│   ├── src/index.js        # Server entry
-│   └── README.md           # MCP documentation
-└── docs/                   # Additional documentation
-```
+## Accuracy
 
-## Calculator APIs
+- Planetary positions: VSOP87 via [astronomy-engine](https://github.com/cosinekitty/astronomy)
+- Accuracy: ±1 arcminute
+- Ascendant: Calculated from local sidereal time
+- Human Design: 88° solar arc for design calculation
 
-All calculators can be imported and used directly:
+## What's Included
 
-```javascript
-import calculateAstrology from './src/calculators/astrology.js';
-import calculateHumanDesign, { calculateGeneKeys } from './src/calculators/humandesign.js';
+| System | Data |
+|--------|------|
+| **Astrology** | Sun, Moon, Rising, all planets, nodes, midheaven, aspects, elements, modalities |
+| **Human Design** | Type, Strategy, Authority, Profile, Centers, Gates (13 planets), Channels, Incarnation Cross |
+| **Gene Keys** | Activation Sequence, Venus Sequence, Pearl Sequence with shadow/gift/siddhi |
 
-// Western Astrology
-const astrology = calculateAstrology(
-  '1990-06-15',  // birth date
-  14.5,          // birth hour (2:30 PM)
-  -5,            // timezone (EST)
-  40.7128,       // latitude (NYC)
-  -74.0060       // longitude (NYC)
-);
+## What's NOT Included
 
-console.log(astrology.bigThree); // "♊ Gemini Sun, ♓ Pisces Moon, ♏ Scorpio Rising"
-
-// Human Design
-const hd = calculateHumanDesign('1990-06-15', 14.5, -5);
-console.log(hd.type.name);       // "Generator"
-console.log(hd.authority.name);  // "Emotional Authority"
-
-// Gene Keys
-const gk = calculateGeneKeys(hd);
-console.log(gk.activationSequence.lifeWork.gift); // "Imagination"
-```
-
-## Technical Details
-
-### Astronomical Accuracy
-- Uses VSOP87 planetary theory via astronomy-engine
-- Planetary positions accurate to ±1 arcminute
-- Ascendant calculated from local sidereal time
-- Mean lunar nodes (true node calculation available)
-
-### Human Design
-- Design date calculated as 88° of solar arc before birth
-- All 64 gates with I Ching correspondences
-- 36 channels with center connections
-- 9 centers with defined/undefined states
-
-### Gene Keys
-- Derived from Human Design gates
-- 64 keys with shadow, gift, and siddhi
-- Three sequences: Activation, Venus, Pearl
-
-## Contributing
-
-Contributions welcome! Please read the contributing guidelines before submitting PRs.
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+- Interpretations or readings
+- Transit calculations
+- Synastry/compatibility (coming soon)
+- Progressed charts
+- Solar returns
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
-
-## Credits
-
-- Planetary calculations: [astronomy-engine](https://github.com/cosinekitty/astronomy)
-- Algorithms: Jean Meeus, *Astronomical Algorithms*
-- Geocoding: [OpenStreetMap Nominatim](https://nominatim.org/)
-
----
-
-Built with love for seekers of cosmic wisdom.
+MIT

@@ -1,10 +1,17 @@
 /**
- * StarChart Calculator - Main Entry Point
- * Connects all calculators to the UI
+ * NatalEngine Calculator - Main Entry Point
  */
 
 import calculateAstrology from './calculators/astrology.js';
 import calculateHumanDesign, { calculateGeneKeys } from './calculators/humandesign.js';
+import { searchLocations, isDSTForDate } from './geocode.js';
+
+// Store calculated data for export
+let calculatedData = {
+  astrology: null,
+  humandesign: null,
+  genekeys: null
+};
 
 // DOM Elements
 const form = document.getElementById('birth-form');
@@ -24,31 +31,6 @@ function debounce(func, wait) {
     clearTimeout(timeout);
     timeout = setTimeout(later, wait);
   };
-}
-
-// Search locations using Nominatim
-async function searchLocations(query) {
-  if (!query || query.length < 2) return [];
-
-  try {
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`,
-      { headers: { 'User-Agent': 'StarChart Calculator' } }
-    );
-    const data = await response.json();
-
-    return data.map(item => ({
-      lat: parseFloat(item.lat),
-      lon: parseFloat(item.lon),
-      displayName: item.display_name,
-      name: item.address?.city || item.address?.town || item.address?.village || item.name,
-      region: item.address?.state || item.address?.region || '',
-      country: item.address?.country || ''
-    }));
-  } catch (error) {
-    console.error('Geocoding error:', error);
-    return [];
-  }
 }
 
 // Format timezone from longitude
@@ -75,31 +57,59 @@ function setupLocationAutocomplete() {
   };
 
   const selectLocation = (location) => {
-    selectedLocation = location;
+    // Auto-detect DST based on birth date
+    const birthDateInput = document.getElementById('birth-date');
+    let autoDST = false;
+
+    if (birthDateInput.value) {
+      const [year, month, day] = birthDateInput.value.split('-').map(Number);
+      autoDST = isDSTForDate(location.country, location.region, year, month, day);
+    }
+
+    selectedLocation = {
+      lat: location.lat,
+      lon: location.lon,
+      timezone: location.timezone,
+      isDST: autoDST,
+      country: location.country,
+      region: location.region,
+      name: location.name
+    };
     input.value = '';
     hideDropdown();
 
-    // Show selected location
-    const tz = getTimezoneFromLon(location.lon);
-    const tzStr = tz >= 0 ? `UTC+${tz}` : `UTC${tz}`;
-    selectedDiv.innerHTML = `
-      <span>📍 ${location.name}${location.region ? ', ' + location.region : ''}, ${location.country}</span>
-      <span class="location-coords">(${location.lat.toFixed(2)}°, ${location.lon.toFixed(2)}° · ${tzStr})</span>
-      <button type="button" class="clear-location" title="Clear location">×</button>
-    `;
+    const updateLocationDisplay = () => {
+      const effectiveTz = selectedLocation.timezone + (selectedLocation.isDST ? 1 : 0);
+      const tzStr = effectiveTz >= 0 ? `UTC+${effectiveTz}` : `UTC${effectiveTz}`;
+      const dstLabel = selectedLocation.isDST ? 'DST' : 'Std';
+      selectedDiv.innerHTML = `
+        <span>${location.name || 'Unknown'}${location.region ? ', ' + location.region : ''}${location.country ? ', ' + location.country : ''}</span>
+        <span class="location-coords">(${location.lat.toFixed(2)}, ${location.lon.toFixed(2)} ${tzStr})</span>
+        <button type="button" class="dst-toggle ${selectedLocation.isDST ? 'active' : ''}" title="Toggle Daylight Saving Time (auto-detected)">${dstLabel}</button>
+        <button type="button" class="clear-location" title="Clear">×</button>
+      `;
+
+      selectedDiv.querySelector('.dst-toggle').addEventListener('click', () => {
+        selectedLocation.isDST = !selectedLocation.isDST;
+        selectedLocation.manualDST = true; // Mark as manually set
+        updateLocationDisplay();
+      });
+
+      selectedDiv.querySelector('.clear-location').addEventListener('click', () => {
+        selectedLocation = null;
+        selectedDiv.classList.remove('active');
+        input.placeholder = 'Search city...';
+      });
+    };
+
+    updateLocationDisplay();
     selectedDiv.classList.add('active');
-
-    // Clear button handler
-    selectedDiv.querySelector('.clear-location').addEventListener('click', () => {
-      selectedLocation = null;
-      selectedDiv.classList.remove('active');
-      input.placeholder = 'Start typing a city...';
-    });
-
     input.placeholder = 'Change location...';
+
+    // Store updateLocationDisplay for date change handler
+    selectedLocation.updateDisplay = updateLocationDisplay;
   };
 
-  // Debounced search
   const debouncedSearch = debounce(async (query) => {
     if (query.length < 2) {
       hideDropdown();
@@ -111,31 +121,26 @@ function setupLocationAutocomplete() {
     const results = await searchLocations(query);
 
     if (results.length === 0) {
-      showDropdown('<div class="location-no-results">No locations found. Try a different search.</div>');
+      showDropdown('<div class="location-no-results">No locations found</div>');
       return;
     }
 
     const optionsHtml = results.map((loc, index) => `
       <div class="location-option" data-index="${index}">
         <div class="location-name">${loc.name || 'Unknown'}${loc.region ? ', ' + loc.region : ''}</div>
-        <div class="location-details">${loc.country} · ${loc.lat.toFixed(2)}°, ${loc.lon.toFixed(2)}°</div>
+        <div class="location-details">${loc.country} · ${loc.lat.toFixed(2)}, ${loc.lon.toFixed(2)}</div>
       </div>
     `).join('');
 
     showDropdown(optionsHtml);
 
-    // Add click handlers to options
     dropdown.querySelectorAll('.location-option').forEach((option, index) => {
       option.addEventListener('click', () => selectLocation(results[index]));
     });
   }, 300);
 
-  // Input event
-  input.addEventListener('input', (e) => {
-    debouncedSearch(e.target.value);
-  });
+  input.addEventListener('input', (e) => debouncedSearch(e.target.value));
 
-  // Keyboard navigation
   input.addEventListener('keydown', (e) => {
     const options = dropdown.querySelectorAll('.location-option');
     if (!options.length) return;
@@ -156,16 +161,9 @@ function setupLocationAutocomplete() {
     }
   });
 
-  // Hide dropdown on blur (with delay to allow clicks)
-  input.addEventListener('blur', () => {
-    setTimeout(hideDropdown, 200);
-  });
-
-  // Show dropdown on focus if there's text
+  input.addEventListener('blur', () => setTimeout(hideDropdown, 200));
   input.addEventListener('focus', () => {
-    if (input.value.length >= 2) {
-      debouncedSearch(input.value);
-    }
+    if (input.value.length >= 2) debouncedSearch(input.value);
   });
 }
 
@@ -175,82 +173,38 @@ window.toggleCoordinates = function() {
   const btn = document.querySelector('.toggle-coords');
   if (row.style.display === 'none') {
     row.style.display = 'flex';
-    btn.textContent = 'Use city search instead';
+    btn.textContent = 'Use city search';
   } else {
     row.style.display = 'none';
     btn.textContent = 'Enter coordinates manually';
   }
 };
 
-// Render functions for each system
+// Copy JSON to clipboard
+window.copyJSON = function(type) {
+  const data = calculatedData[type];
+  if (data) {
+    navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+    const btn = document.querySelector(`#${type}-card .export-btn`);
+    const original = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = original, 1500);
+  }
+};
+
+// Planet symbols
+const SYMBOLS = {
+  sun: '☉', moon: '☽', mercury: '☿', venus: '♀', mars: '♂',
+  jupiter: '♃', saturn: '♄', uranus: '⛢', neptune: '♆', pluto: '♇',
+  northNode: '☊', southNode: '☋', earth: '⊕'
+};
+
+// Render Astrology
 function renderAstrology(data) {
   const container = document.getElementById('astrology-result');
 
-  const risingBadge = data.rising.accurate
-    ? '<span style="color: #22c55e; font-size: 0.7rem;"> ✓</span>'
-    : '<span style="color: #fbbf24; font-size: 0.7rem;"> ⚠️</span>';
-
-  // Planet symbols
-  const symbols = {
-    mercury: '☿', venus: '♀', mars: '♂', jupiter: '♃',
-    saturn: '♄', uranus: '⛢', neptune: '♆', pluto: '♇'
-  };
-
-  // Build planets grid
-  const planetsHtml = Object.entries(data.planets).map(([name, planet]) => `
-    <div class="planet-item">
-      <span class="planet-symbol">${symbols[name]}</span>
-      <span class="planet-name">${name.charAt(0).toUpperCase() + name.slice(1)}</span>
-      <span class="planet-sign">${planet.sign.symbol} ${planet.sign.name}</span>
-      <span class="planet-degree">${planet.degree}</span>
-    </div>
-  `).join('');
-
-  // Nodes
-  const nodesHtml = `
-    <div class="planet-item">
-      <span class="planet-symbol">☊</span>
-      <span class="planet-name">North Node</span>
-      <span class="planet-sign">${data.nodes.north.sign.symbol} ${data.nodes.north.sign.name}</span>
-      <span class="planet-degree">${data.nodes.north.degree}</span>
-    </div>
-    <div class="planet-item">
-      <span class="planet-symbol">☋</span>
-      <span class="planet-name">South Node</span>
-      <span class="planet-sign">${data.nodes.south.sign.symbol} ${data.nodes.south.sign.name}</span>
-      <span class="planet-degree">${data.nodes.south.degree}</span>
-    </div>
-  `;
-
-  // Midheaven (if available)
-  const mcHtml = data.midheaven ? `
-    <div class="planet-item">
-      <span class="planet-symbol">MC</span>
-      <span class="planet-name">Midheaven</span>
-      <span class="planet-sign">${data.midheaven.sign.symbol} ${data.midheaven.sign.name}</span>
-      <span class="planet-degree">${data.midheaven.degree}</span>
-    </div>
-  ` : '';
-
-  container.innerHTML = `
-    <style>
-      .big-three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem; }
-      .big-three-item { text-align: center; padding: 0.5rem; background: var(--surface); border-radius: 8px; }
-      .big-three-label { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; }
-      .big-three-sign { font-size: 1.5rem; }
-      .big-three-name { font-size: 0.85rem; font-weight: 500; }
-      .big-three-degree { font-size: 0.7rem; color: var(--text-secondary); }
-      .planets-section { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
-      .planets-title { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem; text-transform: uppercase; }
-      .planets-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.25rem; }
-      .planet-item { display: grid; grid-template-columns: 1.2rem 4rem 4rem 1fr; gap: 0.25rem; font-size: 0.8rem; padding: 0.25rem 0; align-items: center; }
-      .planet-symbol { color: var(--accent); }
-      .planet-name { color: var(--text-secondary); }
-      .planet-sign { font-weight: 500; }
-      .planet-degree { font-size: 0.7rem; color: var(--text-secondary); }
-      .nodes-section { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
-    </style>
-
+  // Big Three
+  const bigThreeHtml = `
     <div class="big-three">
       <div class="big-three-item">
         <div class="big-three-label">Sun</div>
@@ -265,360 +219,263 @@ function renderAstrology(data) {
         <div class="big-three-degree">${data.moon.degree}</div>
       </div>
       <div class="big-three-item">
-        <div class="big-three-label">Rising ${risingBadge}</div>
+        <div class="big-three-label">Rising</div>
         <div class="big-three-sign">${data.rising.sign.symbol}</div>
         <div class="big-three-name">${data.rising.sign.name}</div>
         <div class="big-three-degree">${data.rising.degree || ''}</div>
       </div>
     </div>
+  `;
 
-    <div class="result-item">
-      <span class="result-label">Element</span>
-      <span class="result-value">${data.sun.sign.element} - ${data.balance.dominantElement.traits}</span>
+  // Planets
+  const planetRows = Object.entries(data.planets).map(([name, planet]) => `
+    <div class="planet-row">
+      <span class="symbol">${SYMBOLS[name]}</span>
+      <span class="name">${name.charAt(0).toUpperCase() + name.slice(1)}</span>
+      <span class="sign">${planet.sign.symbol} ${planet.sign.name}</span>
+      <span class="degree">${planet.degree}</span>
     </div>
-    <div class="result-item">
-      <span class="result-label">Modality</span>
-      <span class="result-value">${data.sun.sign.modality} - ${data.balance.dominantModality.traits}</span>
+  `).join('');
+
+  // Nodes
+  const nodesHtml = `
+    <div class="planet-row">
+      <span class="symbol">☊</span>
+      <span class="name">North Node</span>
+      <span class="sign">${data.nodes.north.sign.symbol} ${data.nodes.north.sign.name}</span>
+      <span class="degree">${data.nodes.north.degree}</span>
+    </div>
+    <div class="planet-row">
+      <span class="symbol">☋</span>
+      <span class="name">South Node</span>
+      <span class="sign">${data.nodes.south.sign.symbol} ${data.nodes.south.sign.name}</span>
+      <span class="degree">${data.nodes.south.degree}</span>
+    </div>
+  `;
+
+  // Midheaven
+  const mcHtml = data.midheaven ? `
+    <div class="planet-row">
+      <span class="symbol">MC</span>
+      <span class="name">Midheaven</span>
+      <span class="sign">${data.midheaven.sign.symbol} ${data.midheaven.sign.name}</span>
+      <span class="degree">${data.midheaven.degree}</span>
+    </div>
+  ` : '';
+
+  // Aspects (top 10)
+  const aspectsHtml = data.aspects.slice(0, 12).map(a => `
+    <div class="aspect-row">
+      <span class="symbol">${a.planet1Symbol}</span>
+      <span class="planet">${a.planet1}</span>
+      <span class="aspect-type">${a.symbol}</span>
+      <span class="planet">${a.planet2}</span>
+      <span class="orb">${a.exactOrb}</span>
+      <span class="nature">${a.aspect}</span>
+    </div>
+  `).join('');
+
+  container.innerHTML = `
+    ${bigThreeHtml}
+
+    <div class="section-title">Planets</div>
+    <div class="planets-grid">
+      ${planetRows}
     </div>
 
-    <div class="planets-section">
-      <div class="planets-title">Planetary Positions</div>
-      <div class="planets-grid">
-        ${planetsHtml}
-      </div>
+    <div class="section-title">Nodes & Angles</div>
+    <div class="planets-grid">
+      ${nodesHtml}
+      ${mcHtml}
     </div>
 
-    <div class="nodes-section">
-      <div class="planets-title">Lunar Nodes ${mcHtml ? '& Angles' : ''}</div>
-      <div class="planets-grid">
-        ${nodesHtml}
-        ${mcHtml}
-      </div>
-    </div>
-
-    <div style="margin-top: 0.75rem; font-size: 0.65rem; color: #22c55e;">
-      ✓ Calculated using Meeus Astronomical Algorithms
-      ${data.hasLocation ? ' • Birth location included' : ''}
+    <div class="section-title">Aspects (${data.aspects.length} total)</div>
+    <div class="aspects-grid">
+      ${aspectsHtml}
     </div>
   `;
 }
 
+// Render Human Design
 function renderHumanDesign(data) {
   const container = document.getElementById('humandesign-result');
 
-  // Helper to format gate.line
-  const fmtGate = (g) => g ? `${g.gate}.${g.line}` : '?';
-
-  // Get personality and design gates
   const pg = data.gates.personality;
   const dg = data.gates.design;
 
-  // Build sets for quick lookup
-  const definedCenterNames = new Set(data.centers.defined.map(c => c.name.toLowerCase().replace(' ', '')));
-  const personalityGates = new Set();
-  const designGates = new Set();
+  // All 13 planets
+  const planets = ['sun', 'earth', 'moon', 'northNode', 'southNode', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto'];
 
-  // Collect all personality gates
-  Object.values(pg).forEach(g => { if (g?.gate) personalityGates.add(g.gate); });
-  // Collect all design gates
-  Object.values(dg).forEach(g => { if (g?.gate) designGates.add(g.gate); });
+  const gatesTableRows = planets.map(p => {
+    const pGate = pg[p];
+    const dGate = dg[p];
+    return `
+      <tr>
+        <td><span class="planet-symbol">${SYMBOLS[p] || p}</span></td>
+        <td>${pGate ? `<span class="gate-pill personality">${pGate.gate}.${pGate.line}</span>` : '-'}</td>
+        <td>${dGate ? `<span class="gate-pill design">${dGate.gate}.${dGate.line}</span>` : '-'}</td>
+      </tr>
+    `;
+  }).join('');
 
-  // Center SVG paths (approximate Human Design bodygraph layout)
-  const centers = {
-    head:   { path: 'M 155 55 L 180 20 L 205 55 Z', name: 'Head' },
-    ajna:   { path: 'M 155 70 L 205 70 L 180 105 Z', name: 'Ajna' },
-    throat: { path: 'M 155 120 L 205 120 L 205 165 L 155 165 Z', name: 'Throat' },
-    g:      { path: 'M 180 185 L 215 220 L 180 255 L 145 220 Z', name: 'G' },
-    heart:  { path: 'M 225 195 L 255 210 L 240 235 Z', name: 'Heart' },
-    spleen: { path: 'M 70 235 L 130 235 L 100 305 Z', name: 'Spleen' },
-    solar:  { path: 'M 230 235 L 290 235 L 260 305 Z', name: 'Solar Plexus' },
-    sacral: { path: 'M 150 315 L 210 315 L 210 360 L 150 360 Z', name: 'Sacral' },
-    root:   { path: 'M 145 385 L 215 385 L 215 430 L 145 430 Z', name: 'Root' }
-  };
+  // Channels
+  const channelsHtml = data.channels.length > 0
+    ? data.channels.map(c => `<span style="margin-right: 0.75rem; font-family: 'SF Mono', monospace; font-size: 0.8rem;">${c.gates.join('-')}</span>`).join('')
+    : '<span style="color: var(--text-muted);">None</span>';
 
-  // Channel connections (simplified - showing main channels)
-  const channelPaths = [
-    // Head to Ajna
-    { gates: [64, 47], path: 'M 165 55 L 165 70' },
-    { gates: [61, 24], path: 'M 180 55 L 180 70' },
-    { gates: [63, 4], path: 'M 195 55 L 195 70' },
-    // Ajna to Throat
-    { gates: [17, 62], path: 'M 165 105 L 165 120' },
-    { gates: [43, 23], path: 'M 180 105 L 180 120' },
-    { gates: [11, 56], path: 'M 195 105 L 195 120' },
-    // Throat to G
-    { gates: [31, 7], path: 'M 160 165 L 155 185' },
-    { gates: [8, 1], path: 'M 175 165 L 170 185' },
-    { gates: [33, 13], path: 'M 190 165 L 195 185' },
-    // G to Sacral
-    { gates: [15, 5], path: 'M 180 255 L 180 315' },
-    { gates: [2, 14], path: 'M 170 255 L 165 315' },
-    { gates: [46, 29], path: 'M 190 255 L 195 315' },
-    // Sacral to Root
-    { gates: [3, 60], path: 'M 165 360 L 165 385' },
-    { gates: [42, 53], path: 'M 180 360 L 180 385' },
-    { gates: [9, 52], path: 'M 195 360 L 195 385' },
-    // Spleen connections
-    { gates: [57, 20], path: 'M 100 235 L 155 155' },
-    { gates: [48, 16], path: 'M 110 250 L 155 145' },
-    { gates: [50, 27], path: 'M 100 290 L 150 335' },
-    { gates: [32, 54], path: 'M 85 295 L 145 400' },
-    { gates: [28, 38], path: 'M 75 285 L 145 410' },
-    { gates: [18, 58], path: 'M 90 300 L 145 420' },
-    // Solar Plexus connections
-    { gates: [6, 59], path: 'M 245 290 L 210 335' },
-    { gates: [36, 35], path: 'M 260 250 L 205 155' },
-    { gates: [22, 12], path: 'M 250 245 L 205 145' },
-    { gates: [37, 40], path: 'M 245 260 L 245 220' },
-    { gates: [55, 39], path: 'M 270 295 L 215 405' },
-    { gates: [30, 41], path: 'M 260 300 L 210 395' },
-    { gates: [49, 19], path: 'M 275 290 L 215 395' },
-    // Heart connections
-    { gates: [21, 45], path: 'M 235 200 L 205 155' },
-    { gates: [26, 44], path: 'M 230 225 L 130 260' },
-    { gates: [51, 25], path: 'M 225 210 L 200 200' },
-    // G to Spleen
-    { gates: [10, 57], path: 'M 150 230 L 120 250' },
-    // Sacral to Throat (Manifesting Generator)
-    { gates: [34, 20], path: 'M 180 315 L 180 165' },
-  ];
-
-  // Find active channels
-  const activeChannelGates = new Set();
-  data.channels.forEach(ch => {
-    ch.gates.forEach(g => activeChannelGates.add(g));
-  });
-
-  // Render channel lines
-  const renderChannels = () => {
-    return channelPaths.map(ch => {
-      const [g1, g2] = ch.gates;
-      const g1Active = personalityGates.has(g1) || designGates.has(g1);
-      const g2Active = personalityGates.has(g2) || designGates.has(g2);
-
-      if (!g1Active && !g2Active) return ''; // Channel not active
-
-      const g1Personality = personalityGates.has(g1);
-      const g2Personality = personalityGates.has(g2);
-      const g1Design = designGates.has(g1);
-      const g2Design = designGates.has(g2);
-
-      let strokeColor = 'rgba(100,100,120,0.3)';
-      let strokeClass = '';
-
-      if ((g1Personality || g2Personality) && (g1Design || g2Design)) {
-        strokeClass = 'channel-both';
-        strokeColor = '#888';
-      } else if (g1Design || g2Design) {
-        strokeClass = 'channel-design';
-        strokeColor = '#ef4444';
-      } else if (g1Personality || g2Personality) {
-        strokeClass = 'channel-personality';
-        strokeColor = '#1a1a25';
-      }
-
-      const isComplete = activeChannelGates.has(g1) && activeChannelGates.has(g2);
-      const strokeWidth = isComplete ? 4 : 2;
-      const opacity = isComplete ? 1 : 0.5;
-
-      return `<path d="${ch.path}" stroke="${strokeColor}" stroke-width="${strokeWidth}" fill="none" opacity="${opacity}" class="channel ${strokeClass}"/>`;
-    }).join('');
-  };
-
-  // Render centers
-  const renderCenters = () => {
-    return Object.entries(centers).map(([key, center]) => {
-      const normalizedKey = key === 'solar' ? 'solarplexus' : key;
-      const isDefined = definedCenterNames.has(normalizedKey) || definedCenterNames.has(key);
-      const cssClass = isDefined ? 'center center-defined' : 'center center-undefined';
-      return `<path d="${center.path}" class="${cssClass}" data-center="${key}"/>`;
-    }).join('');
-  };
-
-  // Create gate pill
-  const gatePill = (symbol, gateData, type) => {
-    if (!gateData) return '';
-    const cssClass = type === 'personality' ? 'hd-gate-pill personality' : 'hd-gate-pill design';
-    return `<span class="${cssClass}">${symbol} ${gateData.gate}.${gateData.line}</span>`;
-  };
-
-  // Definition type
-  const getDefinition = () => {
-    const channelCount = data.channels.length;
-    if (channelCount === 0) return 'None';
-    if (channelCount === 1) return 'Single';
-    if (channelCount <= 3) return 'Split';
-    return 'Triple Split';
-  };
+  // Defined centers
+  const definedCentersHtml = data.centers.defined.map(c => c.name).join(', ') || 'None';
 
   container.innerHTML = `
-    <div class="bodygraph-container">
-      <svg viewBox="0 0 360 450" class="bodygraph" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <pattern id="striped-pattern" patternUnits="userSpaceOnUse" width="4" height="4" patternTransform="rotate(45)">
-            <line x1="0" y1="0" x2="0" y2="4" stroke="#1a1a25" stroke-width="2"/>
-            <line x1="2" y1="0" x2="2" y2="4" stroke="#ef4444" stroke-width="2"/>
-          </pattern>
-        </defs>
-        <g class="channels">${renderChannels()}</g>
-        <g class="centers">${renderCenters()}</g>
-      </svg>
-
-      <div class="bodygraph-info">
-        <div class="hd-type-badge">${data.type.name}</div>
-
-        <div class="hd-info-grid">
-          <div class="hd-info-item">
-            <div class="hd-info-label">Strategy</div>
-            <div class="hd-info-value">${data.type.strategy}</div>
-          </div>
-          <div class="hd-info-item">
-            <div class="hd-info-label">Authority</div>
-            <div class="hd-info-value">${data.authority.name}</div>
-          </div>
-          <div class="hd-info-item">
-            <div class="hd-info-label">Profile</div>
-            <div class="hd-info-value">${data.profile.numbers}</div>
-          </div>
-          <div class="hd-info-item">
-            <div class="hd-info-label">Definition</div>
-            <div class="hd-info-value">${getDefinition()}</div>
-          </div>
-        </div>
-
-        <div class="hd-info-item" style="margin-top: 0.5rem;">
-          <div class="hd-info-label">Incarnation Cross</div>
-          <div class="hd-info-value" style="font-size: 0.8rem;">${data.incarnationCross.name}</div>
-        </div>
-
-        <div class="hd-gates-section">
-          <div class="hd-info-label">Personality (Conscious)</div>
-          <div class="hd-gates-row">
-            ${gatePill('☉', pg?.sun, 'personality')}
-            ${gatePill('⊕', pg?.earth, 'personality')}
-            ${gatePill('☽', pg?.moon, 'personality')}
-            ${gatePill('☿', pg?.mercury, 'personality')}
-            ${gatePill('♀', pg?.venus, 'personality')}
-            ${gatePill('♂', pg?.mars, 'personality')}
-            ${gatePill('♃', pg?.jupiter, 'personality')}
-          </div>
-        </div>
-
-        <div class="hd-gates-section">
-          <div class="hd-info-label">Design (Unconscious)</div>
-          <div class="hd-gates-row">
-            ${gatePill('☉', dg?.sun, 'design')}
-            ${gatePill('⊕', dg?.earth, 'design')}
-            ${gatePill('☽', dg?.moon, 'design')}
-            ${gatePill('☿', dg?.mercury, 'design')}
-            ${gatePill('♀', dg?.venus, 'design')}
-            ${gatePill('♂', dg?.mars, 'design')}
-            ${gatePill('♃', dg?.jupiter, 'design')}
-          </div>
-        </div>
-
-        ${data.channels.length > 0 ? `
-          <div class="hd-gates-section">
-            <div class="hd-info-label">Channels</div>
-            <div style="font-size: 0.75rem; margin-top: 0.25rem;">
-              ${data.channels.map(c => `<span style="margin-right: 0.5rem;">${c.gates.join('-')}</span>`).join('')}
-            </div>
-          </div>
-        ` : ''}
+    <div class="hd-summary">
+      <div class="hd-type-badge">
+        <div class="type">${data.type.name}</div>
+        <div class="strategy">${data.type.strategy}</div>
       </div>
+      <div class="hd-summary-item">
+        <div class="hd-summary-label">Authority</div>
+        <div class="hd-summary-value">${data.authority.name}</div>
+      </div>
+      <div class="hd-summary-item">
+        <div class="hd-summary-label">Profile</div>
+        <div class="hd-summary-value">${data.profile.numbers} ${data.profile.name}</div>
+      </div>
+      <div class="hd-summary-item">
+        <div class="hd-summary-label">Definition</div>
+        <div class="hd-summary-value">${getDefinitionType(data.channels.length)}</div>
+      </div>
+      <div class="hd-summary-item">
+        <div class="hd-summary-label">Incarnation Cross</div>
+        <div class="hd-summary-value">${data.incarnationCross.name}</div>
+      </div>
+    </div>
+
+    <div class="section-title">Defined Centers</div>
+    <p style="font-size: 0.8rem; margin-bottom: 0.5rem;">${definedCentersHtml}</p>
+
+    <div class="section-title">Gates (All 13 Planets)</div>
+    <table class="gates-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Personality</th>
+          <th>Design</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${gatesTableRows}
+      </tbody>
+    </table>
+
+    <div class="section-title">Channels</div>
+    <div style="margin-top: 0.25rem;">
+      ${channelsHtml}
     </div>
   `;
 }
 
+function getDefinitionType(channelCount) {
+  if (channelCount === 0) return 'None';
+  if (channelCount === 1) return 'Single';
+  if (channelCount <= 3) return 'Split';
+  if (channelCount <= 5) return 'Triple Split';
+  return 'Quad Split';
+}
+
+// Render Gene Keys
 function renderGeneKeys(data) {
   const container = document.getElementById('genekeys-result');
 
-  // Arrow SVG
   const arrow = `<svg class="gk-arrow" viewBox="0 0 20 14"><path d="M 0 7 L 14 7 M 10 3 L 14 7 L 10 11"/></svg>`;
 
-  // Create sphere
-  const sphere = (sphereData) => `
+  const renderSphere = (sphereData) => `
     <div class="gk-sphere">
-      <div class="gk-sphere-circle">${sphereData.keyLine || sphereData.key}</div>
+      <div class="gk-sphere-key">${sphereData.keyLine}</div>
       <div class="gk-sphere-label">${sphereData.sphere}</div>
       <div class="gk-sphere-gift">${sphereData.gift}</div>
     </div>
   `;
 
-  // Sequences
+  const renderSpectrum = (sphereData) => `
+    <div class="gk-spectrum-row">
+      <div class="gk-spectrum-item shadow">
+        <div class="gk-spectrum-label">Shadow</div>
+        <div class="gk-spectrum-value">${sphereData.shadow}</div>
+      </div>
+      <div class="gk-spectrum-item gift">
+        <div class="gk-spectrum-label">Gift</div>
+        <div class="gk-spectrum-value">${sphereData.gift}</div>
+      </div>
+      <div class="gk-spectrum-item siddhi">
+        <div class="gk-spectrum-label">Siddhi</div>
+        <div class="gk-spectrum-value">${sphereData.siddhi}</div>
+      </div>
+    </div>
+  `;
+
   const as = data.activationSequence;
   const vs = data.venusSequence;
   const ps = data.pearlSequence;
 
   container.innerHTML = `
-    <div class="gene-keys-path">
-      <div class="gk-sequence activation">
-        <div class="gk-sequence-title">Activation Sequence</div>
-        <div class="gk-spheres-row">
-          ${sphere(as.lifeWork)}
-          ${arrow}
-          ${sphere(as.evolution)}
-          ${arrow}
-          ${sphere(as.radiance)}
-          ${arrow}
-          ${sphere(as.purpose)}
-        </div>
+    <div class="gk-sequence">
+      <div class="gk-sequence-title">Activation Sequence</div>
+      <div class="gk-spheres-row">
+        ${renderSphere(as.lifeWork)}
+        ${arrow}
+        ${renderSphere(as.evolution)}
+        ${arrow}
+        ${renderSphere(as.radiance)}
+        ${arrow}
+        ${renderSphere(as.purpose)}
       </div>
+      ${renderSpectrum(as.lifeWork)}
+    </div>
 
-      <div class="gk-sequence venus">
-        <div class="gk-sequence-title">Venus Sequence</div>
-        <div class="gk-spheres-row">
-          ${sphere(vs.attraction)}
-          ${arrow}
-          ${sphere(vs.iq)}
-          ${arrow}
-          ${sphere(vs.eq)}
-          ${arrow}
-          ${sphere(vs.sq)}
-        </div>
+    <div class="gk-sequence">
+      <div class="gk-sequence-title">Venus Sequence</div>
+      <div class="gk-spheres-row">
+        ${renderSphere(vs.attraction)}
+        ${arrow}
+        ${renderSphere(vs.iq)}
+        ${arrow}
+        ${renderSphere(vs.eq)}
+        ${arrow}
+        ${renderSphere(vs.sq)}
       </div>
+    </div>
 
-      <div class="gk-sequence pearl">
-        <div class="gk-sequence-title">Pearl Sequence</div>
-        <div class="gk-spheres-row">
-          ${sphere(ps.vocation)}
-          ${arrow}
-          ${sphere(ps.culture)}
-          ${arrow}
-          ${sphere(ps.pearl)}
-        </div>
-      </div>
-
-      <div class="gk-spectrum">
-        <span class="shadow">${as.lifeWork.shadow}</span>
-        <span class="arrow">→</span>
-        <span class="gift">${as.lifeWork.gift}</span>
-        <span class="arrow">→</span>
-        <span class="siddhi">${as.lifeWork.siddhi}</span>
+    <div class="gk-sequence">
+      <div class="gk-sequence-title">Pearl Sequence</div>
+      <div class="gk-spheres-row">
+        ${renderSphere(ps.vocation)}
+        ${arrow}
+        ${renderSphere(ps.culture)}
+        ${arrow}
+        ${renderSphere(ps.pearl)}
       </div>
     </div>
   `;
 }
 
-// Main calculation function
-async function calculateStarChart(birthDate, birthTime, manualCoords) {
-  // Parse time
+// Main calculation
+async function calculateNatalChart(birthDate, birthTime, manualCoords) {
   const timeParts = birthTime.split(':');
   const birthHour = parseInt(timeParts[0], 10) + (parseInt(timeParts[1], 10) / 60);
 
-  // Get location - prefer manual coords, then selectedLocation from autocomplete
   let location = null;
+  let timezone = 0;
+
   if (manualCoords.lat && manualCoords.lon && !isNaN(manualCoords.lat)) {
     location = { lat: manualCoords.lat, lon: manualCoords.lon };
+    timezone = Math.round(location.lon / 15);
   } else if (selectedLocation) {
     location = { lat: selectedLocation.lat, lon: selectedLocation.lon };
+    // Use stored timezone with DST adjustment
+    timezone = selectedLocation.timezone + (selectedLocation.isDST ? 1 : 0);
   }
 
-  // Estimate timezone from longitude (rough approximation)
-  // Each 15° of longitude = 1 hour from UTC
-  const timezone = location ? Math.round(location.lon / 15) : -8; // Default to PST
-
-  // Calculate all systems
+  // Calculate
   const astrology = calculateAstrology(
     birthDate,
     birthHour,
@@ -630,27 +487,21 @@ async function calculateStarChart(birthDate, birthTime, manualCoords) {
   const humanDesign = calculateHumanDesign(birthDate, birthHour, timezone);
   const geneKeys = calculateGeneKeys(humanDesign);
 
-  // Render all results
+  // Store for export
+  calculatedData = { astrology, humandesign: humanDesign, genekeys: geneKeys };
+
+  // Render
   renderAstrology(astrology);
   renderHumanDesign(humanDesign);
   renderGeneKeys(geneKeys);
 
-  // Show results section
   resultsSection.style.display = 'block';
   resultsSection.scrollIntoView({ behavior: 'smooth' });
 
-  // Log full data for debugging
-  console.log('StarChart Data:', {
-    astrology,
-    humanDesign,
-    geneKeys
-  });
+  console.log('NatalEngine Data:', calculatedData);
 }
 
-// Store original results HTML for reset
-let originalResultsHTML = '';
-
-// Form submission handler
+// Form handler
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -659,43 +510,32 @@ form.addEventListener('submit', async (e) => {
   const latitude = document.getElementById('latitude').value;
   const longitude = document.getElementById('longitude').value;
 
-  // Check if manual coordinates are provided
   const hasManualCoords = latitude && longitude && !isNaN(parseFloat(latitude));
 
   if (!birthDate) {
-    alert('Please enter your birth date');
+    alert('Please enter birth date');
     return;
   }
 
-  // Validate that a location is selected (either via autocomplete or manual coords)
   if (!selectedLocation && !hasManualCoords) {
-    alert('Please select a birth location from the search results, or enter coordinates manually.');
+    alert('Please select a birth location');
     document.getElementById('birth-city').focus();
     return;
   }
 
-  // Store original HTML on first run
-  if (!originalResultsHTML) {
-    originalResultsHTML = resultsSection.innerHTML;
-  }
-
-  // Reset to original structure and show
-  resultsSection.innerHTML = originalResultsHTML;
-  resultsSection.style.display = 'block';
-
-  // Set loading state in each card
   document.querySelectorAll('.result-content').forEach(el => {
     el.innerHTML = '<div class="loading">Calculating...</div>';
   });
+  resultsSection.style.display = 'block';
 
   try {
-    await calculateStarChart(
+    await calculateNatalChart(
       birthDate,
       birthTime,
       { lat: parseFloat(latitude), lon: parseFloat(longitude) }
     );
   } catch (error) {
-    console.error('Calculation error:', error);
+    console.error('Error:', error);
     document.querySelectorAll('.result-content').forEach(el => {
       el.innerHTML = `<div class="loading">Error: ${error.message}</div>`;
     });
@@ -704,4 +544,20 @@ form.addEventListener('submit', async (e) => {
 
 // Initialize
 setupLocationAutocomplete();
-console.log('StarChart Calculator loaded');
+
+// Auto-update DST when birth date changes
+document.getElementById('birth-date').addEventListener('change', (e) => {
+  if (selectedLocation && !selectedLocation.manualDST && e.target.value) {
+    const [year, month, day] = e.target.value.split('-').map(Number);
+    selectedLocation.isDST = isDSTForDate(
+      selectedLocation.country,
+      selectedLocation.region,
+      year, month, day
+    );
+    if (selectedLocation.updateDisplay) {
+      selectedLocation.updateDisplay();
+    }
+  }
+});
+
+console.log('NatalEngine loaded');

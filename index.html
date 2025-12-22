@@ -3,65 +3,54 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StarChart - Discover Your Cosmic Blueprint</title>
-  <meta name="description" content="Unlock your cosmic blueprint with Western Astrology, Human Design, and Gene Keys - astronomical precision meets ancient wisdom.">
+  <title>NatalEngine - Birth Chart Calculator</title>
+  <meta name="description" content="Calculate Western Astrology, Human Design, and Gene Keys charts. Open source birth chart engine with clean data output.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/src/styles.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌌</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%E2%97%89</text></svg>">
 </head>
 <body>
-  <!-- Navigation -->
   <nav class="main-nav">
-    <a href="./" class="nav-logo">StarChart</a>
+    <a href="./" class="nav-logo">natalengine</a>
     <div class="nav-links">
       <a href="./" class="nav-link active">Calculator</a>
-      <a href="./about.html" class="nav-link">About</a>
       <a href="./docs.html" class="nav-link">Docs</a>
       <a href="./mcp.html" class="nav-link">MCP</a>
-      <a href="https://github.com/unforced/starchart" class="nav-link nav-github" target="_blank">GitHub</a>
+      <a href="https://github.com/unforced/natalengine" class="nav-link" target="_blank">GitHub</a>
     </div>
   </nav>
 
-  <!-- Cosmic Background -->
-  <div class="cosmic-bg">
-    <div class="stars"></div>
-    <div class="stars"></div>
-    <div class="stars"></div>
-    <div class="nebula"></div>
-  </div>
-
   <div class="container">
     <header>
-      <div class="logo-icon">🌌</div>
-      <h1 class="logo">StarChart</h1>
-      <p class="subtitle">Discover your cosmic blueprint</p>
+      <h1 class="logo">natalengine</h1>
+      <p class="subtitle">Birth chart calculator for Western Astrology, Human Design, and Gene Keys</p>
       <div class="tagline">
-        <span class="tagline-item"><span class="icon">⭐</span> 3 Wisdom Systems</span>
-        <span class="tagline-item"><span class="icon">🎯</span> Astronomical Accuracy</span>
-        <span class="tagline-item"><span class="icon">🔓</span> Open Source</span>
+        <span class="tagline-item">Astrology</span>
+        <span class="tagline-item">Human Design</span>
+        <span class="tagline-item">Gene Keys</span>
       </div>
     </header>
 
     <section class="input-section">
-      <h2>Enter Your Birth Information</h2>
+      <h2>Birth Information</h2>
       <form id="birth-form">
         <div class="form-row">
           <div class="form-group">
-            <label for="birth-date">Birth Date</label>
+            <label for="birth-date">Date</label>
             <input type="date" id="birth-date" required>
           </div>
           <div class="form-group">
-            <label for="birth-time">Birth Time</label>
+            <label for="birth-time">Time</label>
             <input type="time" id="birth-time" value="12:00">
           </div>
         </div>
         <div class="form-row">
           <div class="form-group location-group">
-            <label for="birth-city">Birth City</label>
+            <label for="birth-city">Location</label>
             <div class="location-input-wrapper">
-              <input type="text" id="birth-city" placeholder="Start typing a city..." autocomplete="off">
+              <input type="text" id="birth-city" placeholder="Search city..." autocomplete="off">
               <div class="location-dropdown" id="location-dropdown"></div>
             </div>
             <div class="location-selected" id="location-selected"></div>
@@ -77,36 +66,43 @@
             <input type="number" id="longitude" step="0.0001" placeholder="-74.0060">
           </div>
           <div class="form-group">
-            <label for="timezone">Timezone (UTC offset)</label>
+            <label for="timezone">UTC Offset</label>
             <input type="number" id="timezone" step="0.5" value="0" placeholder="-5">
           </div>
         </div>
         <button type="button" class="toggle-coords" onclick="toggleCoordinates()">Enter coordinates manually</button>
-        <button type="submit" class="calculate-btn">Calculate StarChart</button>
+        <button type="submit" class="calculate-btn">Calculate</button>
       </form>
     </section>
 
     <section class="results-section" id="results" style="display: none;">
-      <h2>Your StarChart</h2>
+      <h2>Results</h2>
 
       <div class="result-grid two-column">
-        <!-- Left Column: Western Astrology -->
         <div class="column left-column">
-          <div class="result-card full-height" id="astrology-card">
-            <h3><span class="card-icon">♈</span> Western Astrology</h3>
+          <div class="result-card" id="astrology-card">
+            <h3>
+              <span><span class="card-icon">&#9737;</span> Western Astrology</span>
+              <button class="export-btn" onclick="copyJSON('astrology')">Copy JSON</button>
+            </h3>
             <div class="result-content" id="astrology-result"></div>
           </div>
         </div>
 
-        <!-- Right Column: Human Design + Gene Keys -->
         <div class="column right-column">
           <div class="result-card" id="humandesign-card">
-            <h3><span class="card-icon">◎</span> Human Design</h3>
+            <h3>
+              <span><span class="card-icon">&#9678;</span> Human Design</span>
+              <button class="export-btn" onclick="copyJSON('humandesign')">Copy JSON</button>
+            </h3>
             <div class="result-content" id="humandesign-result"></div>
           </div>
 
           <div class="result-card" id="genekeys-card">
-            <h3><span class="card-icon">✦</span> Gene Keys</h3>
+            <h3>
+              <span><span class="card-icon">&#10022;</span> Gene Keys</span>
+              <button class="export-btn" onclick="copyJSON('genekeys')">Copy JSON</button>
+            </h3>
             <div class="result-content" id="genekeys-result"></div>
           </div>
         </div>
@@ -114,8 +110,7 @@
     </section>
 
     <footer>
-      <p>StarChart is <a href="https://github.com/unforced/starchart" target="_blank">open source</a> · Calculations use Meeus Astronomical Algorithms</p>
-      <p style="margin-top: 0.5rem; font-size: 0.75rem;">For entertainment and self-reflection purposes</p>
+      <p><a href="https://github.com/unforced/natalengine" target="_blank">natalengine</a> is open source. MIT License.</p>
     </footer>
   </div>
 

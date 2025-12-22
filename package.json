@@ -1,20 +1,36 @@
 {
-  "name": "starchart",
-  "version": "0.1.0",
-  "description": "Open source cosmic blueprint calculator - Western Astrology, Human Design, and Gene Keys with astronomical precision",
+  "name": "natalengine",
+  "version": "1.0.0",
+  "description": "Birth chart calculator for Western Astrology, Human Design, and Gene Keys. Clean data output for apps and AI integrations.",
   "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./mcp": "./src/mcp/index.js",
+    "./astrology": "./src/calculators/astrology.js",
+    "./humandesign": "./src/calculators/humandesign.js",
+    "./astronomy": "./src/calculators/astronomy.js"
+  },
+  "bin": {
+    "natalengine-mcp": "./src/mcp/index.js"
+  },
+  "files": [
+    "src"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "mcp": "node src/mcp/index.js",
+    "test": "node --test tests/"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/unforced/starchart.git"
+    "url": "https://github.com/unforced/natalengine.git"
   },
-  "homepage": "https://unforced.github.io/starchart/",
+  "homepage": "https://natalengine.com",
   "bugs": {
-    "url": "https://github.com/unforced/starchart/issues"
+    "url": "https://github.com/unforced/natalengine/issues"
   },
   "keywords": [
     "astrology",
@@ -22,9 +38,11 @@
     "gene-keys",
     "birth-chart",
     "natal-chart",
+    "horoscope",
     "astronomy",
     "mcp",
-    "open-source"
+    "ai",
+    "claude"
   ],
   "author": "unforced",
   "license": "MIT",
@@ -32,6 +50,7 @@
     "vite": "^5.0.0"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
     "astronomy-engine": "^2.1.19"
   }
 }

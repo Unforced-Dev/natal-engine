@@ -3,127 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Documentation - StarChart</title>
-  <meta name="description" content="Documentation for StarChart - how to use the calculator, understand your results, and integrate with your projects.">
+  <title>Docs - NatalEngine</title>
+  <meta name="description" content="NatalEngine API documentation for Western Astrology, Human Design, and Gene Keys calculations.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/src/styles.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌌</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%E2%97%89</text></svg>">
 </head>
 <body>
-  <!-- Navigation -->
   <nav class="main-nav">
-    <a href="./" class="nav-logo">StarChart</a>
+    <a href="./" class="nav-logo">natalengine</a>
     <div class="nav-links">
       <a href="./" class="nav-link">Calculator</a>
-      <a href="./about.html" class="nav-link">About</a>
       <a href="./docs.html" class="nav-link active">Docs</a>
       <a href="./mcp.html" class="nav-link">MCP</a>
-      <a href="https://github.com/unforced/starchart" class="nav-link nav-github" target="_blank">GitHub</a>
+      <a href="https://github.com/unforced/natalengine" class="nav-link" target="_blank">GitHub</a>
     </div>
   </nav>
-
-  <!-- Cosmic Background -->
-  <div class="cosmic-bg">
-    <div class="stars"></div>
-    <div class="stars"></div>
-    <div class="nebula"></div>
-  </div>
 
   <div class="page-container">
     <div class="page-header">
       <h1>Documentation</h1>
-      <p>Learn how to use StarChart and integrate it with your projects</p>
+      <p>API reference for the natalengine library</p>
     </div>
 
     <section class="content-section">
-      <h2>Using the Calculator</h2>
-
-      <h3>Step 1: Enter Your Birth Date</h3>
-      <p>
-        Select your birth date using the date picker. This is the most important piece of information and is required for all calculations.
-      </p>
-
-      <h3>Step 2: Enter Your Birth Time</h3>
-      <p>
-        Enter your birth time as accurately as possible. The time affects:
-      </p>
-      <ul>
-        <li>Your Rising sign (Ascendant) - changes approximately every 2 hours</li>
-        <li>Moon position - moves about 12° per day</li>
-        <li>House positions in astrology</li>
-        <li>Human Design gates (especially personality vs design)</li>
-      </ul>
-      <p>
-        If you don't know your exact birth time, the default of 12:00 noon will give reasonable planetary positions, but your Rising sign and some Human Design calculations may be inaccurate.
-      </p>
-
-      <h3>Step 3: Enter Your Birth Location</h3>
-      <p>
-        Start typing your birth city and select from the autocomplete suggestions. This provides:
-      </p>
-      <ul>
-        <li>Accurate latitude and longitude for Rising sign calculation</li>
-        <li>Automatic timezone estimation</li>
-        <li>Midheaven (MC) calculation</li>
-      </ul>
-      <p>
-        Alternatively, click "Enter coordinates manually" to input exact latitude, longitude, and timezone offset.
-      </p>
+      <h2>Installation</h2>
+      <pre><code>npm install natalengine</code></pre>
     </section>
 
     <section class="content-section">
-      <h2>Understanding Your Results</h2>
+      <h2>Quick Start</h2>
+      <pre><code>import {
+  calculateAstrology,
+  calculateHumanDesign,
+  calculateGeneKeys
+} from 'natalengine';
 
-      <h3>Western Astrology</h3>
-      <p>
-        The astrology section shows your complete natal chart:
-      </p>
-      <ul>
-        <li><strong>Big Three</strong> - Sun (identity), Moon (emotions), Rising (appearance)</li>
-        <li><strong>Element Balance</strong> - Fire, Earth, Air, Water distribution</li>
-        <li><strong>Modality Balance</strong> - Cardinal, Fixed, Mutable distribution</li>
-        <li><strong>Planetary Positions</strong> - All planets with sign and degree</li>
-        <li><strong>Lunar Nodes</strong> - Life purpose indicators</li>
-      </ul>
-
-      <h3>Human Design</h3>
-      <p>
-        The bodygraph visualization shows your energy centers and channels:
-      </p>
-      <ul>
-        <li><strong>Colored shapes</strong> - Defined (consistent) centers</li>
-        <li><strong>White shapes</strong> - Undefined (receptive) centers</li>
-        <li><strong>Black gates</strong> - Personality (conscious) activations</li>
-        <li><strong>Red gates</strong> - Design (unconscious) activations</li>
-        <li><strong>Channels</strong> - Connections between centers</li>
-      </ul>
-
-      <h3>Gene Keys</h3>
-      <p>
-        The Gene Keys section shows your Golden Path with three sequences:
-      </p>
-      <ul>
-        <li><strong>Activation Sequence</strong> - Your genius and core gifts</li>
-        <li><strong>Venus Sequence</strong> - Your relationship patterns</li>
-        <li><strong>Pearl Sequence</strong> - Your prosperity and contribution</li>
-      </ul>
-      <p>
-        Each sphere shows a key number with its gift. The spectrum at the bottom shows the shadow-gift-siddhi transformation of your Life's Work key.
-      </p>
-    </section>
-
-    <section class="content-section">
-      <h2>Developer API</h2>
-      <p>
-        All StarChart calculators can be imported and used directly in your JavaScript projects:
-      </p>
-      <pre><code>import calculateAstrology from './src/calculators/astrology.js';
-import calculateHumanDesign, { calculateGeneKeys } from './src/calculators/humandesign.js';
-
-// Calculate Western Astrology
-const astrology = calculateAstrology(
+// Western Astrology
+const astro = calculateAstrology(
   '1990-06-15',  // birth date (YYYY-MM-DD)
   14.5,          // birth hour (decimal, 14.5 = 2:30 PM)
   -5,            // timezone (UTC offset)
@@ -131,69 +50,149 @@ const astrology = calculateAstrology(
   -74.0060       // longitude
 );
 
-// Calculate Human Design
+console.log(astro.bigThree);
+// "♊ Gemini Sun, ♓ Pisces Moon, ♎ Libra Rising"
+
+// Human Design
 const hd = calculateHumanDesign('1990-06-15', 14.5, -5);
+console.log(hd.type.name);  // "Generator"
 
-// Calculate Gene Keys
-const gk = calculateGeneKeys(hd);</code></pre>
-
-      <h3>Astrology Return Value</h3>
-      <ul>
-        <li><code>sun</code>, <code>moon</code>, <code>rising</code> - Big three with sign, degree, longitude</li>
-        <li><code>planets</code> - Mercury through Pluto</li>
-        <li><code>nodes</code> - North and South lunar nodes</li>
-        <li><code>midheaven</code> - MC position (if location provided)</li>
-        <li><code>balance</code> - Element and modality counts</li>
-        <li><code>bigThree</code> - Formatted string</li>
-      </ul>
-
-      <h3>Human Design Return Value</h3>
-      <ul>
-        <li><code>type</code> - Name, strategy, signature, not-self</li>
-        <li><code>authority</code> - Decision-making authority</li>
-        <li><code>profile</code> - Numbers and description</li>
-        <li><code>incarnationCross</code> - Name and gates</li>
-        <li><code>centers</code> - Defined and undefined</li>
-        <li><code>gates</code> - Personality and design activations</li>
-        <li><code>channels</code> - Complete channel list</li>
-      </ul>
-
-      <h3>Gene Keys Return Value</h3>
-      <ul>
-        <li><code>activationSequence</code> - Life's Work, Evolution, Radiance, Purpose</li>
-        <li><code>venusSequence</code> - Attraction, IQ, EQ, SQ</li>
-        <li><code>pearlSequence</code> - Vocation, Culture, Pearl</li>
-        <li>Each sphere includes key, line, shadow, gift, siddhi</li>
-      </ul>
+// Gene Keys
+const gk = calculateGeneKeys(hd);
+console.log(gk.activationSequence.lifeWork.gift);  // "Discrimination"</code></pre>
     </section>
 
     <section class="content-section">
-      <h2>Installation</h2>
-      <pre><code># Clone the repository
-git clone https://github.com/unforced/starchart.git
-cd starchart
+      <h2>calculateAstrology()</h2>
+      <p>Calculate Western natal chart with planetary positions, aspects, and analysis.</p>
 
-# Install dependencies
-npm install
+      <h3>Parameters</h3>
+      <ul>
+        <li><code>birthDate</code> (string) - Date in YYYY-MM-DD format</li>
+        <li><code>birthHour</code> (number) - Decimal hours (14.5 = 2:30 PM)</li>
+        <li><code>timezone</code> (number) - UTC offset (-5 for EST)</li>
+        <li><code>latitude</code> (number, optional) - Required for accurate Rising</li>
+        <li><code>longitude</code> (number, optional) - Required for accurate Rising</li>
+      </ul>
 
-# Start development server
-npm run dev
-
-# Build for production
-npm run build</code></pre>
+      <h3>Returns</h3>
+      <pre><code>{
+  sun: { sign, degree, longitude },
+  moon: { sign, degree, longitude },
+  rising: { sign, degree, longitude, accurate },
+  planets: {
+    mercury, venus, mars, jupiter,
+    saturn, uranus, neptune, pluto
+  },
+  nodes: { north, south },
+  midheaven: { sign, degree, longitude },
+  aspects: [
+    { planet1, planet2, aspect, symbol, orb, nature }
+  ],
+  balance: {
+    elements: { fire, earth, air, water },
+    modalities: { cardinal, fixed, mutable },
+    dominantElement,
+    dominantModality
+  },
+  bigThree: "♊ Gemini Sun, ♓ Pisces Moon, ♎ Libra Rising"
+}</code></pre>
     </section>
 
     <section class="content-section">
-      <h2>Additional Resources</h2>
+      <h2>calculateHumanDesign()</h2>
+      <p>Calculate Human Design chart with Type, Strategy, Authority, and gate activations.</p>
+
+      <h3>Parameters</h3>
       <ul>
-        <li><a href="https://github.com/unforced/starchart" target="_blank">GitHub Repository</a> - Source code and issue tracker</li>
-        <li><a href="/mcp.html">MCP Server</a> - AI assistant integration</li>
-        <li><a href="https://github.com/cosinekitty/astronomy" target="_blank">astronomy-engine</a> - The astronomical library used</li>
+        <li><code>birthDate</code> (string) - Date in YYYY-MM-DD format</li>
+        <li><code>birthHour</code> (number) - Decimal hours</li>
+        <li><code>timezone</code> (number) - UTC offset</li>
+      </ul>
+
+      <h3>Returns</h3>
+      <pre><code>{
+  type: {
+    name: "Generator",
+    strategy: "Wait to respond",
+    signature: "Satisfaction",
+    notSelf: "Frustration"
+  },
+  authority: {
+    name: "Emotional Authority",
+    description: "Wait through emotional wave"
+  },
+  profile: {
+    numbers: "3/5",
+    name: "Martyr/Heretic",
+    theme: "Trial and error, universalizing"
+  },
+  incarnationCross: {
+    name: "Right Angle Cross of Planning",
+    gates: [40, 37, 9, 16]
+  },
+  centers: {
+    defined: [{ name, theme, biological }],
+    undefined: [{ name, theme, biological }]
+  },
+  gates: {
+    personality: {
+      sun, earth, moon, northNode, southNode,
+      mercury, venus, mars, jupiter, saturn,
+      uranus, neptune, pluto
+    },
+    design: { ... },
+    all: [1, 2, 3, ...]
+  },
+  channels: [
+    { gates: [41, 30], name: "Recognition", centers: [...] }
+  ]
+}</code></pre>
+    </section>
+
+    <section class="content-section">
+      <h2>calculateGeneKeys()</h2>
+      <p>Calculate Gene Keys profile from Human Design data.</p>
+
+      <h3>Parameters</h3>
+      <ul>
+        <li><code>humanDesignData</code> (object) - Result from calculateHumanDesign()</li>
+      </ul>
+
+      <h3>Returns</h3>
+      <pre><code>{
+  activationSequence: {
+    lifeWork: { key, line, sphere, shadow, gift, siddhi },
+    evolution: { ... },
+    radiance: { ... },
+    purpose: { ... }
+  },
+  venusSequence: {
+    attraction: { ... },
+    iq: { ... },
+    eq: { ... },
+    sq: { ... }
+  },
+  pearlSequence: {
+    vocation: { ... },
+    culture: { ... },
+    pearl: { ... }
+  }
+}</code></pre>
+    </section>
+
+    <section class="content-section">
+      <h2>Accuracy</h2>
+      <ul>
+        <li>Planetary positions: VSOP87 via astronomy-engine (±1 arcminute)</li>
+        <li>Ascendant: Calculated from local sidereal time</li>
+        <li>Human Design: 88° solar arc for design calculation</li>
+        <li>Aspects: Includes major (±8°) and minor (±2-3°) aspects</li>
       </ul>
     </section>
 
-    <footer style="text-align: center; padding: 2rem 0; color: var(--text-secondary); font-size: 0.9rem;">
-      <p>StarChart is <a href="https://github.com/unforced/starchart" target="_blank" style="color: var(--accent);">open source</a></p>
+    <footer>
+      <p><a href="https://github.com/unforced/natalengine" target="_blank">natalengine</a> is open source. MIT License.</p>
     </footer>
   </div>
 </body>
