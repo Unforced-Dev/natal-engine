@@ -1,6 +1,6 @@
 {
   "name": "natalengine",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Birth chart calculator for Western Astrology, Human Design, and Gene Keys. Clean data output for apps and AI integrations.",
   "type": "module",
   "main": "src/index.js",
@@ -26,11 +26,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/unforced/natalengine.git"
+    "url": "https://github.com/Unforced-Dev/natal-engine.git"
   },
-  "homepage": "https://natalengine.com",
+  "homepage": "https://unforced-dev.github.io/natal-engine/",
   "bugs": {
-    "url": "https://github.com/unforced/natalengine/issues"
+    "url": "https://github.com/Unforced-Dev/natal-engine/issues"
   },
   "keywords": [
     "astrology",
