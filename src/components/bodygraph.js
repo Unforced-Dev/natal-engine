@@ -10,7 +10,7 @@ import {
   GATE_CIRCLE_POSITIONS,
   GATE_TEXT_POSITIONS,
   VIEWBOX
-} from '../../bodygraph-data-extracted.js';
+} from '../data/bodygraph-svg-data.js';
 
 import { GATES, CHANNELS, CENTERS } from '../calculators/humandesign.js';
 
