@@ -5,6 +5,9 @@
 import calculateAstrology from './calculators/astrology.js';
 import calculateHumanDesign, { calculateGeneKeys } from './calculators/humandesign.js';
 import { searchLocations, isDSTForDate } from './geocode.js';
+import { renderAstrologyChart } from './components/astrology-chart.js';
+import { renderBodygraph } from './components/bodygraph.js';
+import { renderGeneKeysChart } from './components/genekeys-chart.js';
 
 // Store calculated data for export
 let calculatedData = {
@@ -81,19 +84,11 @@ function setupLocationAutocomplete() {
     const updateLocationDisplay = () => {
       const effectiveTz = selectedLocation.timezone + (selectedLocation.isDST ? 1 : 0);
       const tzStr = effectiveTz >= 0 ? `UTC+${effectiveTz}` : `UTC${effectiveTz}`;
-      const dstLabel = selectedLocation.isDST ? 'DST' : 'Std';
       selectedDiv.innerHTML = `
         <span>${location.name || 'Unknown'}${location.region ? ', ' + location.region : ''}${location.country ? ', ' + location.country : ''}</span>
         <span class="location-coords">(${location.lat.toFixed(2)}, ${location.lon.toFixed(2)} ${tzStr})</span>
-        <button type="button" class="dst-toggle ${selectedLocation.isDST ? 'active' : ''}" title="Toggle Daylight Saving Time (auto-detected)">${dstLabel}</button>
         <button type="button" class="clear-location" title="Clear">×</button>
       `;
-
-      selectedDiv.querySelector('.dst-toggle').addEventListener('click', () => {
-        selectedLocation.isDST = !selectedLocation.isDST;
-        selectedLocation.manualDST = true; // Mark as manually set
-        updateLocationDisplay();
-      });
 
       selectedDiv.querySelector('.clear-location').addEventListener('click', () => {
         selectedLocation = null;
@@ -263,9 +258,15 @@ function renderAstrology(data) {
     </div>
   ` : '';
 
-  // Aspects (top 10)
+  // Aspects with harmony color coding
+  const getAspectHarmony = (aspect) => {
+    if (['trine', 'sextile'].includes(aspect)) return 'harmonious';
+    if (['square', 'opposition'].includes(aspect)) return 'challenging';
+    return 'neutral';
+  };
+
   const aspectsHtml = data.aspects.slice(0, 12).map(a => `
-    <div class="aspect-row">
+    <div class="aspect-row ${getAspectHarmony(a.aspect)}">
       <span class="symbol">${a.planet1Symbol}</span>
       <span class="planet">${a.planet1}</span>
       <span class="aspect-type">${a.symbol}</span>
@@ -276,6 +277,8 @@ function renderAstrology(data) {
   `).join('');
 
   container.innerHTML = `
+    <div class="chart-wrapper"></div>
+
     ${bigThreeHtml}
 
     <div class="section-title">Planets</div>
@@ -289,11 +292,19 @@ function renderAstrology(data) {
       ${mcHtml}
     </div>
 
-    <div class="section-title">Aspects (${data.aspects.length} total)</div>
-    <div class="aspects-grid">
-      ${aspectsHtml}
-    </div>
+    <details class="collapsible">
+      <summary>Aspects (${data.aspects.length} total)</summary>
+      <div class="collapsible-content">
+        <div class="aspects-grid">
+          ${aspectsHtml}
+        </div>
+      </div>
+    </details>
   `;
+
+  // Render the visual chart
+  const chartWrapper = container.querySelector('.chart-wrapper');
+  renderAstrologyChart(chartWrapper, data);
 }
 
 // Render Human Design
@@ -327,6 +338,8 @@ function renderHumanDesign(data) {
   const definedCentersHtml = data.centers.defined.map(c => c.name).join(', ') || 'None';
 
   container.innerHTML = `
+    <div class="chart-wrapper"></div>
+
     <div class="hd-summary">
       <div class="hd-type-badge">
         <div class="type">${data.type.name}</div>
@@ -353,25 +366,37 @@ function renderHumanDesign(data) {
     <div class="section-title">Defined Centers</div>
     <p style="font-size: 0.8rem; margin-bottom: 0.5rem;">${definedCentersHtml}</p>
 
-    <div class="section-title">Gates (All 13 Planets)</div>
-    <table class="gates-table">
-      <thead>
-        <tr>
-          <th></th>
-          <th>Personality</th>
-          <th>Design</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${gatesTableRows}
-      </tbody>
-    </table>
+    <details class="collapsible">
+      <summary>Gates (All 13 Planets)</summary>
+      <div class="collapsible-content">
+        <table class="gates-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Personality</th>
+              <th>Design</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${gatesTableRows}
+          </tbody>
+        </table>
+      </div>
+    </details>
 
-    <div class="section-title">Channels</div>
-    <div style="margin-top: 0.25rem;">
-      ${channelsHtml}
-    </div>
+    <details class="collapsible">
+      <summary>Channels (${data.channels.length})</summary>
+      <div class="collapsible-content">
+        <div style="margin-top: 0.25rem;">
+          ${channelsHtml}
+        </div>
+      </div>
+    </details>
   `;
+
+  // Render the bodygraph
+  const chartWrapper = container.querySelector('.chart-wrapper');
+  renderBodygraph(chartWrapper, data);
 }
 
 function getDefinitionType(channelCount) {
@@ -418,6 +443,8 @@ function renderGeneKeys(data) {
   const ps = data.pearlSequence;
 
   container.innerHTML = `
+    <div class="chart-wrapper"></div>
+
     <div class="gk-sequence">
       <div class="gk-sequence-title">Activation Sequence</div>
       <div class="gk-spheres-row">
@@ -456,6 +483,10 @@ function renderGeneKeys(data) {
       </div>
     </div>
   `;
+
+  // Render the visual chart
+  const chartWrapper = container.querySelector('.chart-wrapper');
+  renderGeneKeysChart(chartWrapper, data);
 }
 
 // Main calculation
@@ -542,8 +573,93 @@ form.addEventListener('submit', async (e) => {
   }
 });
 
+// Dark mode toggle
+function initDarkMode() {
+  const toggle = document.getElementById('dark-mode-toggle');
+  const icon = toggle.querySelector('.theme-icon');
+
+  // Icons: ☀ (light), ◐ (auto), ☾ (dark)
+  const themes = ['auto', 'dark', 'light'];
+  const icons = { auto: '◐', dark: '☾', light: '☀' };
+
+  // Load saved preference
+  const stored = localStorage.getItem('theme') || 'auto';
+  if (stored !== 'auto') {
+    document.documentElement.setAttribute('data-theme', stored);
+  }
+  icon.textContent = icons[stored];
+
+  toggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme') || 'auto';
+    const currentIndex = themes.indexOf(current);
+    const next = themes[(currentIndex + 1) % themes.length];
+
+    if (next === 'auto') {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.removeItem('theme');
+    } else {
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    }
+
+    icon.textContent = icons[next];
+  });
+}
+
+// Tab navigation
+function initTabs() {
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const tabPanels = document.querySelectorAll('.tab-panel');
+
+  // Load saved tab preference
+  const savedTab = localStorage.getItem('activeTab') || 'astrology';
+
+  tabBtns.forEach(btn => {
+    // Set initial state
+    if (btn.dataset.tab === savedTab) {
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
+    } else {
+      btn.classList.remove('active');
+      btn.setAttribute('aria-selected', 'false');
+    }
+
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+
+      // Update buttons
+      tabBtns.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
+
+      // Update panels
+      tabPanels.forEach(panel => {
+        panel.classList.remove('active');
+      });
+      document.getElementById(`panel-${tab}`).classList.add('active');
+
+      // Save preference
+      localStorage.setItem('activeTab', tab);
+    });
+  });
+
+  // Set initial panel state
+  tabPanels.forEach(panel => {
+    if (panel.id === `panel-${savedTab}`) {
+      panel.classList.add('active');
+    } else {
+      panel.classList.remove('active');
+    }
+  });
+}
+
 // Initialize
 setupLocationAutocomplete();
+initDarkMode();
+initTabs();
 
 // Auto-update DST when birth date changes
 document.getElementById('birth-date').addEventListener('change', (e) => {

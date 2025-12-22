@@ -22,11 +22,16 @@
   --astrology: #f59e0b;
   --humandesign: #3b82f6;
   --genekeys: #10b981;
+
+  /* Aspect colors */
+  --aspect-harmonious: #22c55e;
+  --aspect-challenging: #ef4444;
+  --aspect-neutral: #6b7280;
 }
 
-/* Dark mode */
+/* Dark mode - auto (system preference) */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #0a0a0b;
     --bg-card: #18181b;
     --bg-subtle: #27272a;
@@ -36,6 +41,18 @@
     --border: #27272a;
     --border-strong: #3f3f46;
   }
+}
+
+/* Dark mode - manual override */
+:root[data-theme="dark"] {
+  --bg: #0a0a0b;
+  --bg-card: #18181b;
+  --bg-subtle: #27272a;
+  --text: #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --border: #27272a;
+  --border-strong: #3f3f46;
 }
 
 body {
@@ -90,6 +107,30 @@ body {
 .nav-link.active {
   color: var(--text);
   background: var(--bg-subtle);
+}
+
+/* Theme toggle */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.15s;
+}
+
+.theme-toggle:hover {
+  color: var(--text);
+  background: var(--bg-subtle);
+}
+
+.theme-icon {
+  font-size: 1rem;
 }
 
 /* Container */
@@ -331,6 +372,85 @@ header {
 
 .results-section h2::before { display: none; }
 
+/* Tabs */
+.tabs-container {
+  background: var(--bg-card);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.tabs-nav {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-subtle);
+}
+
+.tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.tab-btn:hover {
+  color: var(--text);
+  background: var(--bg-card);
+}
+
+.tab-btn.active {
+  color: var(--text);
+  background: var(--bg-card);
+  border-bottom-color: var(--accent);
+}
+
+.tab-btn[data-tab="astrology"].active { border-bottom-color: var(--astrology); }
+.tab-btn[data-tab="humandesign"].active { border-bottom-color: var(--humandesign); }
+.tab-btn[data-tab="genekeys"].active { border-bottom-color: var(--genekeys); }
+
+.tab-icon {
+  font-size: 1.1rem;
+}
+
+.tab-panels {
+  padding: 1.25rem;
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+/* Card header (for tabbed layout) */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.card-title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Legacy grid (keep for fallback) */
 .result-grid.two-column {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -350,6 +470,13 @@ header {
   border-radius: 8px;
   padding: 1.25rem;
   border: 1px solid var(--border);
+}
+
+/* Remove card styling when inside tabs (tabs container provides the styling) */
+.tab-panel .result-card {
+  border: none;
+  padding: 0;
+  border-radius: 0;
 }
 
 .result-card::before { display: none; }
@@ -467,6 +594,46 @@ header {
   border-top: 1px solid var(--border);
 }
 
+/* Collapsible sections */
+.collapsible {
+  margin: 1rem 0 0.5rem 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.collapsible summary {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  list-style: none;
+  user-select: none;
+}
+
+.collapsible summary::-webkit-details-marker {
+  display: none;
+}
+
+.collapsible summary::after {
+  content: '+';
+  font-size: 1rem;
+  font-weight: 400;
+  transition: transform 0.2s;
+}
+
+.collapsible[open] summary::after {
+  content: '-';
+}
+
+.collapsible-content {
+  margin-top: 0.5rem;
+}
+
 /* Planets Grid */
 .planets-grid {
   display: grid;
@@ -511,6 +678,13 @@ header {
 .aspect-row .aspect-type { text-align: center; font-size: 1rem; }
 .aspect-row .orb { font-family: 'SF Mono', monospace; color: var(--text-muted); }
 .aspect-row .nature { font-size: 0.7rem; color: var(--text-muted); }
+
+/* Aspect harmony colors */
+.aspect-row.harmonious { border-left: 3px solid var(--aspect-harmonious); padding-left: 0.5rem; }
+.aspect-row.challenging { border-left: 3px solid var(--aspect-challenging); padding-left: 0.5rem; }
+.aspect-row.neutral { border-left: 3px solid var(--aspect-neutral); padding-left: 0.5rem; }
+.aspect-row.harmonious .aspect-type { color: var(--aspect-harmonious); }
+.aspect-row.challenging .aspect-type { color: var(--aspect-challenging); }
 
 /* Human Design */
 .hd-summary {
@@ -610,11 +784,20 @@ header {
   }
 }
 
+/* Chart wrapper - common styling for all visual charts */
+.chart-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem 0;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
 /* Bodygraph SVG */
 .bodygraph-container {
   display: grid;
-  grid-template-columns: 200px 1fr;
-  gap: 1.5rem;
+  grid-template-columns: 150px 1fr;
+  gap: 1rem;
 }
 
 .bodygraph {
@@ -623,7 +806,7 @@ header {
 
 .bodygraph .center {
   stroke: var(--border-strong);
-  stroke-width: 1.5;
+  stroke-width: 1;
 }
 
 .bodygraph .center-undefined {
@@ -632,7 +815,7 @@ header {
 
 .bodygraph .center-defined {
   fill: var(--bg-subtle);
-  stroke-width: 2;
+  stroke-width: 1.5;
 }
 
 .bodygraph .channel {
@@ -800,6 +983,29 @@ footer a:hover {
 
   .hd-type-badge {
     grid-column: span 1;
+  }
+
+  /* Tab responsiveness */
+  .tab-btn {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  .tab-label {
+    display: none;
+  }
+
+  .tab-icon {
+    font-size: 1.25rem;
+  }
+
+  .tabs-nav {
+    justify-content: center;
+  }
+
+  .tab-btn {
+    flex: 0 0 auto;
+    min-width: 60px;
   }
 }
 
