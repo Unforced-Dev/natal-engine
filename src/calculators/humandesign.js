@@ -15,6 +15,7 @@
 
 import { calculateBirthPositions } from './astronomy.js';
 import { parseDateComponents } from './utils.js';
+import { getIncarnationCross } from '../data/incarnation-crosses.js';
 
 // The 9 Centers in Human Design
 const CENTERS = {
@@ -509,10 +510,18 @@ export function calculateHumanDesign(birthDate, birthHour = 12, timezone = 0) {
   const designSunGate = designGates.sun?.gate;
   const designEarthGate = designGates.earth?.gate;
 
+  // Get proper Incarnation Cross name based on Personality Sun and Profile
+  const crossInfo = getIncarnationCross(personalitySunGate, profile);
+
   const incarnationCross = {
-    name: `${GATES[personalitySunGate]?.name || 'Unknown'} / ${GATES[personalityEarthGate]?.name || 'Unknown'}`,
+    ...crossInfo,
     gates: [personalitySunGate, personalityEarthGate, designSunGate, designEarthGate],
-    theme: 'Your life purpose and direction'
+    gateNames: [
+      GATES[personalitySunGate]?.name,
+      GATES[personalityEarthGate]?.name,
+      GATES[designSunGate]?.name,
+      GATES[designEarthGate]?.name
+    ]
   };
 
   // Determine definition type based on channel count and center connectivity
