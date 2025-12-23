@@ -490,6 +490,15 @@ export function calculateHumanDesign(birthDate, birthHour = 12, timezone = 0) {
     theme: 'Your life purpose and direction'
   };
 
+  // Determine definition type based on channel count and center connectivity
+  const channelCount = activeChannels.length;
+  let definition = 'None';
+  if (channelCount === 0) definition = 'None';
+  else if (channelCount === 1) definition = 'Single Definition';
+  else if (channelCount <= 3) definition = 'Split Definition';
+  else if (channelCount <= 5) definition = 'Triple Split';
+  else definition = 'Quadruple Split';
+
   return {
     type: TYPES[type],
     authority: AUTHORITIES[authority],
@@ -497,10 +506,13 @@ export function calculateHumanDesign(birthDate, birthHour = 12, timezone = 0) {
       numbers: profile,
       ...profileInfo
     },
+    definition,
     incarnationCross,
     centers: {
       defined: Array.from(definedCenters).map(c => CENTERS[c]),
-      undefined: Object.keys(CENTERS).filter(c => !definedCenters.has(c)).map(c => CENTERS[c])
+      undefined: Object.keys(CENTERS).filter(c => !definedCenters.has(c)).map(c => CENTERS[c]),
+      definedNames: Array.from(definedCenters),
+      undefinedNames: Object.keys(CENTERS).filter(c => !definedCenters.has(c))
     },
     gates: {
       personality: personalityGates,
@@ -508,7 +520,42 @@ export function calculateHumanDesign(birthDate, birthHour = 12, timezone = 0) {
       all: Array.from(activeGates)
     },
     channels: activeChannels,
-    useEphemeris: true, // Using accurate Meeus calculations
+    // Raw planetary positions for advanced users
+    positions: {
+      personality: {
+        date: birthDate,
+        sun: personalityPos.sun,
+        earth: personalityPos.earth,
+        moon: personalityPos.moon,
+        northNode: personalityPos.northNode,
+        southNode: personalityPos.southNode,
+        mercury: personalityPos.mercury,
+        venus: personalityPos.venus,
+        mars: personalityPos.mars,
+        jupiter: personalityPos.jupiter,
+        saturn: personalityPos.saturn,
+        uranus: personalityPos.uranus,
+        neptune: personalityPos.neptune,
+        pluto: personalityPos.pluto
+      },
+      design: {
+        date: `${designYear}-${String(designMonth).padStart(2, '0')}-${String(designDay).padStart(2, '0')}`,
+        sun: designPos.sun,
+        earth: designPos.earth,
+        moon: designPos.moon,
+        northNode: designPos.northNode,
+        southNode: designPos.southNode,
+        mercury: designPos.mercury,
+        venus: designPos.venus,
+        mars: designPos.mars,
+        jupiter: designPos.jupiter,
+        saturn: designPos.saturn,
+        uranus: designPos.uranus,
+        neptune: designPos.neptune,
+        pluto: designPos.pluto
+      }
+    },
+    useEphemeris: true,
     summary: `${TYPES[type].name} with ${AUTHORITIES[authority].name}, ${profileInfo.name} Profile`,
     note: 'Calculated using Meeus algorithms (all 13 planetary positions)'
   };
@@ -684,6 +731,27 @@ export function calculateGeneKeys(humanDesignResult) {
     coreStability: `${activationSequence.radiance.key} → ${activationSequence.purpose.key}`
   };
 
+  // Core is the same Gene Key as Vocation (Design Mars) - viewed through Venus Sequence lens
+  const core = createSphere(design.mars, "Core");
+
+  // Brand is the same Gene Key as Life's Work (Personality Sun) - viewed through Pearl Sequence lens
+  const brand = createSphere(personality.sun, "Brand");
+
+  // All unique Gene Keys in the profile (11 total, but some spheres share keys)
+  const allKeys = [
+    activationSequence.lifeWork,
+    activationSequence.evolution,
+    activationSequence.radiance,
+    activationSequence.purpose,
+    venusSequence.attraction,
+    venusSequence.iq,
+    venusSequence.eq,
+    venusSequence.sq,
+    pearlSequence.vocation, // Same as Core
+    pearlSequence.culture,
+    pearlSequence.pearl
+  ];
+
   return {
     // Activation Sequence (primary)
     ...activationSequence,
@@ -693,8 +761,15 @@ export function calculateGeneKeys(humanDesignResult) {
     venusSequence,
     pearlSequence,
 
+    // Shared spheres (same Gene Key, different lens)
+    core, // Same as vocation
+    brand, // Same as lifeWork
+
     // Pathways
     pathways,
+
+    // All Gene Keys in profile
+    allKeys,
 
     // Summary
     primeGifts: [
@@ -703,6 +778,11 @@ export function calculateGeneKeys(humanDesignResult) {
       activationSequence.radiance.gift,
       activationSequence.purpose.gift
     ],
+
+    summary: `Life's Work: ${activationSequence.lifeWork.keyLine} (${activationSequence.lifeWork.gift}), ` +
+             `Evolution: ${activationSequence.evolution.keyLine} (${activationSequence.evolution.gift}), ` +
+             `Radiance: ${activationSequence.radiance.keyLine} (${activationSequence.radiance.gift}), ` +
+             `Purpose: ${activationSequence.purpose.keyLine} (${activationSequence.purpose.gift})`,
 
     note: 'Gene Keys profile calculated from Human Design planetary positions'
   };

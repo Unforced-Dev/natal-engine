@@ -257,12 +257,12 @@ export const GATE_CIRCLE_POSITIONS = {
   64: { cx: 383.23, cy: 140.29, r: 12.30 }
 };
 
-// SVG viewBox dimensions
+// SVG viewBox dimensions (extended height for legend)
 export const VIEWBOX = {
   minX: 0,
   minY: 0,
   width: 851.41,
-  height: 1309.4
+  height: 1380
 };
 
 // Center names mapping (for reference)

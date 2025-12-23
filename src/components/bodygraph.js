@@ -387,8 +387,8 @@ export function renderBodygraph(container, data) {
     drawGateLabel(gateLabelsLayer, gateNum, gateInfo, personalityGates, designGates);
   }
 
-  // Legend
-  const legendY = VIEWBOX.height - 50;
+  // Legend - positioned below the bodygraph with padding
+  const legendY = 1320;
   const legend = createSvgElement('g', { transform: `translate(80, ${legendY})` });
 
   const legendBg = createSvgElement('rect', {
@@ -396,7 +396,7 @@ export function renderBodygraph(container, data) {
     width: 700, height: 50,
     fill: 'var(--bg-card, #ffffff)',
     rx: 8,
-    opacity: '0.9'
+    opacity: '0.95'
   });
   legend.appendChild(legendBg);
 
