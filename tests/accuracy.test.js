@@ -142,17 +142,98 @@ describe('Human Design Motor-to-Throat Connection', () => {
   });
 });
 
-describe('Astrology Calculations', () => {
+describe('Astrology Calculations - Celebrity Charts', () => {
   test('Steve Jobs - Sun, Moon, Rising all correct', () => {
     // February 24, 1955, 19:15 PST, San Francisco
-    // Source: astro.com (birth certificate verified)
+    // Source: astro.com/astro-databank/Jobs,_Steve (birth certificate verified, Rodden Rating AA)
     const result = calculateAstrology('1955-02-24', 19.25, -8, 37.7749, -122.4194);
 
     assert.strictEqual(result.sun.sign.name, 'Pisces', 'Sun should be in Pisces');
     assert.strictEqual(result.moon.sign.name, 'Aries', 'Moon should be in Aries');
     assert.strictEqual(result.rising.sign.name, 'Virgo', 'Rising should be Virgo');
+
+    // Verify planetary positions are in correct signs
+    assert.strictEqual(result.planets.mercury.sign.name, 'Aquarius', 'Mercury should be in Aquarius');
+    assert.strictEqual(result.planets.venus.sign.name, 'Capricorn', 'Venus should be in Capricorn');
+    assert.strictEqual(result.planets.mars.sign.name, 'Aries', 'Mars should be in Aries');
   });
 
+  test('Barack Obama - verified birth certificate', () => {
+    // August 4, 1961, 19:24 HST (-10), Honolulu, Hawaii
+    // Source: astro.com/astro-databank/Obama,_Barack (birth certificate, Rodden Rating AA)
+    // Lat: 21.3069, Long: -157.8583
+    const result = calculateAstrology('1961-08-04', 19.4, -10, 21.3069, -157.8583);
+
+    assert.strictEqual(result.sun.sign.name, 'Leo', 'Sun should be in Leo');
+    assert.strictEqual(result.moon.sign.name, 'Gemini', 'Moon should be in Gemini');
+    assert.strictEqual(result.rising.sign.name, 'Aquarius', 'Rising should be Aquarius');
+
+    // Additional planet verifications
+    assert.strictEqual(result.planets.mercury.sign.name, 'Leo', 'Mercury should be in Leo');
+    assert.strictEqual(result.planets.venus.sign.name, 'Cancer', 'Venus should be in Cancer');
+  });
+
+  test('Princess Diana - verified birth data', () => {
+    // July 1, 1961, 19:45 BST (+1), Sandringham, UK
+    // Source: astro.com/astro-databank/Spencer,_Diana (Rodden Rating A)
+    // Lat: 52.8333, Long: 0.5167
+    const result = calculateAstrology('1961-07-01', 19.75, 1, 52.8333, 0.5167);
+
+    assert.strictEqual(result.sun.sign.name, 'Cancer', 'Sun should be in Cancer');
+    assert.strictEqual(result.moon.sign.name, 'Aquarius', 'Moon should be in Aquarius');
+    assert.strictEqual(result.rising.sign.name, 'Sagittarius', 'Rising should be Sagittarius');
+  });
+
+  test('Marilyn Monroe - birth certificate verified', () => {
+    // June 1, 1926, 09:30 PST, Los Angeles
+    // Source: astro.com/astro-databank/Monroe,_Marilyn (birth certificate, Rodden Rating AA)
+    // Lat: 34.0522, Long: -118.2437
+    const result = calculateAstrology('1926-06-01', 9.5, -8, 34.0522, -118.2437);
+
+    assert.strictEqual(result.sun.sign.name, 'Gemini', 'Sun should be in Gemini');
+    assert.strictEqual(result.moon.sign.name, 'Aquarius', 'Moon should be in Aquarius');
+    assert.strictEqual(result.rising.sign.name, 'Leo', 'Rising should be Leo');
+
+    // Verify other key positions
+    assert.strictEqual(result.planets.venus.sign.name, 'Aries', 'Venus should be in Aries');
+    assert.strictEqual(result.planets.mars.sign.name, 'Pisces', 'Mars should be in Pisces');
+  });
+
+  test('Albert Einstein - historical records', () => {
+    // March 14, 1879, 11:30 LMT, Ulm, Germany
+    // Source: astro.com/astro-databank/Einstein,_Albert (biography, Rodden Rating A)
+    // Lat: 48.4011, Long: 9.9876 (Ulm)
+    // LMT for Ulm: UTC+0:40 (longitude 9.9876 / 15 = 0.666 hours)
+    const result = calculateAstrology('1879-03-14', 11.5, 0.666, 48.4011, 9.9876);
+
+    assert.strictEqual(result.sun.sign.name, 'Pisces', 'Sun should be in Pisces');
+    // Moon and Rising harder to verify for historical dates with LMT
+  });
+
+  test('Oprah Winfrey - verified birth data', () => {
+    // January 29, 1954, 04:30 CST (-6), Kosciusko, Mississippi
+    // Source: astro.com/astro-databank/Winfrey,_Oprah (birth certificate, Rodden Rating AA)
+    // Lat: 33.0576, Long: -89.5876
+    const result = calculateAstrology('1954-01-29', 4.5, -6, 33.0576, -89.5876);
+
+    assert.strictEqual(result.sun.sign.name, 'Aquarius', 'Sun should be in Aquarius');
+    assert.strictEqual(result.moon.sign.name, 'Sagittarius', 'Moon should be in Sagittarius');
+    assert.strictEqual(result.rising.sign.name, 'Sagittarius', 'Rising should be Sagittarius');
+  });
+
+  test('Madonna - birth certificate verified', () => {
+    // August 16, 1958, 07:05 EST (-5), Bay City, Michigan
+    // Source: astro.com/astro-databank/Madonna (birth certificate, Rodden Rating AA)
+    // Lat: 43.5945, Long: -83.8889
+    const result = calculateAstrology('1958-08-16', 7.083, -5, 43.5945, -83.8889);
+
+    assert.strictEqual(result.sun.sign.name, 'Leo', 'Sun should be in Leo');
+    assert.strictEqual(result.moon.sign.name, 'Virgo', 'Moon should be in Virgo');
+    assert.strictEqual(result.rising.sign.name, 'Virgo', 'Rising should be Virgo');
+  });
+});
+
+describe('Astrology Calculations - Sun Signs', () => {
   test('Sun sign calculation across all 12 signs', () => {
     // Test approximate dates for each Sun sign
     const testCases = [
@@ -180,6 +261,33 @@ describe('Astrology Calculations', () => {
     });
   });
 
+  test('Sun sign boundary dates are accurate', () => {
+    // Test cusp dates - the exact time matters for boundaries
+    // In 2000, the Spring Equinox was March 20 at 07:35 UTC
+    const cuspTests = [
+      // Aries begins March 20, 2000 at 07:35 UTC
+      { date: '2000-03-19', hour: 12, expected: 'Pisces' },
+      { date: '2000-03-20', hour: 12, expected: 'Aries' }, // After equinox
+      // Taurus begins around April 19-20
+      { date: '2000-04-19', hour: 6, expected: 'Aries' },
+      { date: '2000-04-20', hour: 12, expected: 'Taurus' },
+      // Gemini begins around May 20-21
+      { date: '2000-05-20', hour: 6, expected: 'Taurus' },
+      { date: '2000-05-21', hour: 12, expected: 'Gemini' },
+    ];
+
+    cuspTests.forEach(({ date, hour, expected }) => {
+      const result = calculateAstrology(date, hour, 0);
+      assert.strictEqual(
+        result.sun.sign.name,
+        expected,
+        `Sun on ${date} at ${hour}:00 should be in ${expected}, got ${result.sun.sign.name}`
+      );
+    });
+  });
+});
+
+describe('Astrology Calculations - Technical Accuracy', () => {
   test('Ascendant requires location', () => {
     const withLocation = calculateAstrology('2000-01-01', 12, 0, 40.7128, -74.0060);
     const withoutLocation = calculateAstrology('2000-01-01', 12, 0);
@@ -199,6 +307,77 @@ describe('Astrology Calculations', () => {
         longitude >= 0 && longitude < 360,
         `${planet} longitude ${longitude} should be 0-360`
       );
+    });
+  });
+
+  test('Sun longitude matches degree in sign', () => {
+    const result = calculateAstrology('2000-06-15', 12, 0);
+
+    // Sun should be in Gemini, longitude should be between 60-90
+    const sunLong = result.sun.longitude;
+
+    assert.ok(sunLong >= 60 && sunLong < 90, `Gemini Sun longitude should be 60-90 (got ${sunLong})`);
+
+    // Degree is formatted as "X°Y'Z"" - extract the degree portion
+    const sunDegree = result.sun.degree;
+    const degreeMatch = typeof sunDegree === 'string' ? parseInt(sunDegree.split('°')[0]) : sunDegree;
+    assert.ok(degreeMatch >= 0 && degreeMatch < 30, `Degree in sign should be 0-30 (got ${sunDegree})`);
+  });
+
+  test('Outer planets move slowly (sanity check)', () => {
+    // Check that outer planets are in expected signs for 2000
+    const result = calculateAstrology('2000-06-15', 12, 0);
+
+    // In 2000: Pluto was in Sagittarius, Neptune in Aquarius, Uranus in Aquarius
+    assert.strictEqual(result.planets.pluto.sign.name, 'Sagittarius', 'Pluto should be in Sagittarius in 2000');
+    assert.strictEqual(result.planets.neptune.sign.name, 'Aquarius', 'Neptune should be in Aquarius in 2000');
+    assert.strictEqual(result.planets.uranus.sign.name, 'Aquarius', 'Uranus should be in Aquarius in 2000');
+  });
+
+  test('Jupiter and Saturn transit check for 2020', () => {
+    // Famous Great Conjunction: December 21, 2020 - Jupiter and Saturn in early Aquarius
+    const result = calculateAstrology('2020-12-21', 12, 0);
+
+    assert.strictEqual(result.planets.jupiter.sign.name, 'Aquarius', 'Jupiter should be in Aquarius on Dec 21, 2020');
+    assert.strictEqual(result.planets.saturn.sign.name, 'Aquarius', 'Saturn should be in Aquarius on Dec 21, 2020');
+
+    // They should be very close together (within a few degrees)
+    const jupLong = result.planets.jupiter.longitude;
+    const satLong = result.planets.saturn.longitude;
+    const diff = Math.abs(jupLong - satLong);
+
+    assert.ok(diff < 2, `Jupiter and Saturn should be conjunct (diff: ${diff.toFixed(2)}°)`);
+  });
+
+  test('Lunar nodes are opposite each other', () => {
+    const result = calculateAstrology('2000-01-01', 12, 0);
+
+    const northLong = result.nodes.north.longitude;
+    const southLong = result.nodes.south.longitude;
+
+    // Nodes should be exactly opposite (180° apart)
+    let diff = Math.abs(northLong - southLong);
+    if (diff > 180) diff = 360 - diff;
+
+    assert.ok(
+      Math.abs(diff - 180) < 1,
+      `Nodes should be 180° apart (got ${diff.toFixed(2)}°)`
+    );
+  });
+
+  test('Aspects are calculated correctly', () => {
+    const result = calculateAstrology('2000-01-01', 12, 0);
+
+    // Should have some aspects
+    assert.ok(result.aspects.length > 0, 'Should calculate some aspects');
+
+    // Each aspect should have required properties
+    result.aspects.forEach(aspect => {
+      assert.ok(aspect.planet1, 'Aspect should have planet1');
+      assert.ok(aspect.planet2, 'Aspect should have planet2');
+      assert.ok(aspect.aspect, 'Aspect should have aspect name');
+      assert.ok(typeof aspect.orb === 'number', 'Aspect should have numeric orb');
+      assert.ok(aspect.orb <= 8, 'Major aspect orb should be <= 8°');
     });
   });
 });
