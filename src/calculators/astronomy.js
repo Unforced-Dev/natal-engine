@@ -277,9 +277,37 @@ export function calculateBirthPositions(year, month, day, hour = 12, timezone = 
   const plutoVec = Astronomy.GeoVector('Pluto', date, true);
   const plutoEcl = Astronomy.Ecliptic(plutoVec);
 
-  // Calculate Mean North Node (True node is more complex)
+  // Calculate True North Node (used by Human Design)
+  // Mean Node + perturbation corrections from Meeus "Astronomical Algorithms"
   const T = julianCenturies(jd);
-  const northNodeLong = normalizeAngle(125.0445479 - 1934.1362891 * T + 0.0020754 * T * T);
+  const T2 = T * T;
+  const T3 = T2 * T;
+  const T4 = T3 * T;
+
+  // Mean longitude of Moon's ascending node
+  const meanNode = normalizeAngle(125.0445479 - 1934.1362891 * T + 0.0020754 * T2 + T3 / 467441 - T4 / 60616000);
+
+  // Calculate D, M, M', F for True Node perturbation terms
+  const D = normalizeAngle(297.8501921 + 445267.1114034 * T - 0.0018819 * T2 + T3 / 545868 - T4 / 113065000);
+  const M = normalizeAngle(357.5291092 + 35999.0502909 * T - 0.0001536 * T2 + T3 / 24490000);
+  const Mprime = normalizeAngle(134.9633964 + 477198.8675055 * T + 0.0087414 * T2 + T3 / 69699 - T4 / 14712000);
+  const F = normalizeAngle(93.2720950 + 483202.0175233 * T - 0.0036539 * T2 - T3 / 3526000 + T4 / 863310000);
+
+  // Convert to radians
+  const D_rad = D * DEG_TO_RAD;
+  const M_rad = M * DEG_TO_RAD;
+  const Mprime_rad = Mprime * DEG_TO_RAD;
+  const F_rad = F * DEG_TO_RAD;
+
+  // True Node correction terms (main perturbations)
+  let nodeCorrection = 0;
+  nodeCorrection += -1.4979 * Math.sin(2 * (D_rad - F_rad));
+  nodeCorrection += -0.1500 * Math.sin(M_rad);
+  nodeCorrection += -0.1226 * Math.sin(2 * D_rad);
+  nodeCorrection +=  0.1176 * Math.sin(2 * F_rad);
+  nodeCorrection += -0.0801 * Math.sin(2 * (Mprime_rad - F_rad));
+
+  const northNodeLong = normalizeAngle(meanNode + nodeCorrection);
   const southNodeLong = normalizeAngle(northNodeLong + 180);
 
   const result = {
