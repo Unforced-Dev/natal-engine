@@ -373,26 +373,30 @@ export function calculateHumanDesign(birthDate, birthHour = 12, timezone = 0) {
 
   // Phase 2: Find the exact hour and minute using binary search
   // Search across a 48-hour window centered on our best day estimate
-  // Use fractional days for precision
+  // IMPORTANT: Keep base date fixed, only adjust via offsets
+  const baseYear = designYear;
+  const baseMonth = designMonth;
+  const baseDay = designDay;
+
   let lowDayOffset = -1.0; // 1 day before our estimate
   let highDayOffset = 1.0; // 1 day after our estimate
+  let bestOffset = 0;
 
   for (let iteration = 0; iteration < 30; iteration++) {
     const midDayOffset = (lowDayOffset + highDayOffset) / 2;
 
-    // Calculate date/time from day offset
-    // Each day offset represents fractional days from noon on our estimate date
-    const totalDays = midDayOffset;
-    const daysToAdd = Math.floor(totalDays);
-    const fractionalDay = totalDays - daysToAdd;
-    const hourFromNoon = fractionalDay * 24; // Convert fraction of day to hours
+    // Calculate date/time from day offset relative to FIXED base date
+    // Convert offset to hours from noon on base date
+    const totalHoursFromBaseNoon = midDayOffset * 24;
 
-    // Start from noon on design day, add offset
-    let searchDate = new Date(designYear, designMonth - 1, designDay + daysToAdd);
+    // Calculate actual date/time
+    let searchDate = new Date(baseYear, baseMonth - 1, baseDay, 12);
+    searchDate.setTime(searchDate.getTime() + totalHoursFromBaseNoon * 60 * 60 * 1000);
+
     const searchYear = searchDate.getFullYear();
     const searchMonth = searchDate.getMonth() + 1;
     const searchDay = searchDate.getDate();
-    const searchHour = 12 + hourFromNoon; // Noon + offset hours
+    const searchHour = searchDate.getHours() + searchDate.getMinutes() / 60;
 
     designPos = calculateBirthPositions(searchYear, searchMonth, searchDay, searchHour, timezone);
     const currentSunLong = designPos.sun.longitude;
@@ -419,11 +423,19 @@ export function calculateHumanDesign(birthDate, birthHour = 12, timezone = 0) {
       lowDayOffset = midDayOffset;
     }
 
-    // Update best result
-    designYear = searchYear;
-    designMonth = searchMonth;
-    designDay = searchDay;
-    designHour = searchHour;
+    // Track best offset for final result if we don't converge
+    bestOffset = midDayOffset;
+  }
+
+  // If loop completed without break, use best offset to set final values
+  if (designYear === baseYear && designMonth === baseMonth && designDay === baseDay) {
+    const totalHoursFromBaseNoon = bestOffset * 24;
+    let finalDate = new Date(baseYear, baseMonth - 1, baseDay, 12);
+    finalDate.setTime(finalDate.getTime() + totalHoursFromBaseNoon * 60 * 60 * 1000);
+    designYear = finalDate.getFullYear();
+    designMonth = finalDate.getMonth() + 1;
+    designDay = finalDate.getDate();
+    designHour = finalDate.getHours() + finalDate.getMinutes() / 60;
   }
 
   // Final calculation at the exact Design moment
