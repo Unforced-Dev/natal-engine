@@ -99,17 +99,24 @@ Returns Human Design chart data.
   type: { name, strategy, authority, notSelf, signature },
   authority: { name, description },
   profile: { numbers, name, theme },
+  definition: "Single Definition" | "Split Definition" | "Triple Split" | "Quadruple Split",
   incarnationCross: { name, gates, theme },
   centers: {
     defined: [{ name, theme, biological }],
-    undefined: [{ name, theme, biological }]
+    undefined: [{ name, theme, biological }],
+    definedNames: ["Sacral", "Throat", ...],
+    undefinedNames: ["Head", "Ajna", ...]
   },
   gates: {
     personality: { sun, earth, moon, northNode, southNode, mercury, venus, mars, jupiter, saturn, uranus, neptune, pluto },
     design: { sun, earth, moon, northNode, southNode, mercury, venus, mars, jupiter, saturn, uranus, neptune, pluto },
     all: [1, 2, 3, ...]
   },
-  channels: [{ gates, name, centers }]
+  channels: [{ gates, name, centers }],
+  positions: {
+    personality: { date, sun, earth, moon, ... }, // Raw planetary data at birth
+    design: { date, sun, earth, moon, ... }       // Raw planetary data 88° before
+  }
 }
 ```
 
@@ -122,22 +129,27 @@ Returns Gene Keys profile from Human Design data.
 ```javascript
 {
   activationSequence: {
-    lifeWork: { key, line, shadow, gift, siddhi },
-    evolution: { key, line, shadow, gift, siddhi },
-    radiance: { key, line, shadow, gift, siddhi },
-    purpose: { key, line, shadow, gift, siddhi }
+    lifeWork: { key, line, keyLine, shadow, gift, siddhi },
+    evolution: { key, line, keyLine, shadow, gift, siddhi },
+    radiance: { key, line, keyLine, shadow, gift, siddhi },
+    purpose: { key, line, keyLine, shadow, gift, siddhi }
   },
   venusSequence: {
-    attraction: { key, line, shadow, gift, siddhi },
-    iq: { key, line, shadow, gift, siddhi },
-    eq: { key, line, shadow, gift, siddhi },
-    sq: { key, line, shadow, gift, siddhi }
+    attraction: { key, line, keyLine, shadow, gift, siddhi },
+    iq: { key, line, keyLine, shadow, gift, siddhi },
+    eq: { key, line, keyLine, shadow, gift, siddhi },
+    sq: { key, line, keyLine, shadow, gift, siddhi }
   },
   pearlSequence: {
-    vocation: { key, line, shadow, gift, siddhi },
-    culture: { key, line, shadow, gift, siddhi },
-    pearl: { key, line, shadow, gift, siddhi }
-  }
+    vocation: { key, line, keyLine, shadow, gift, siddhi },
+    culture: { key, line, keyLine, shadow, gift, siddhi },
+    pearl: { key, line, keyLine, shadow, gift, siddhi }
+  },
+  core: { ... },       // Same as vocation (Design Mars) - Venus Sequence lens
+  brand: { ... },      // Same as lifeWork (Personality Sun) - Pearl Sequence lens
+  allKeys: [...],      // All 11 Gene Keys in the profile
+  primeGifts: [...],   // The 4 gifts from Activation Sequence
+  summary: "Life's Work: 64.3 (Imagination), ..."
 }
 ```
 

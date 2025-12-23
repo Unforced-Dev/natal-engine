@@ -83,9 +83,11 @@ The browser interface (`index.html` + `main.js`) features:
 - Center shapes match Human Design convention
 
 **Gene Keys Chart** (`genekeys-chart.js`):
-- Three rows: Activation (4), Venus (4), Pearl (3)
-- Connected spheres showing hologenetic pathway
-- Key numbers displayed in each sphere
+- Diamond layout matching official Gene Keys hologenetic profile
+- 11 spheres: Activation (green), Venus (red), Pearl (blue) sequences
+- Dual-color gradients for shared spheres (Purpose, Core/Vocation, Brand/Life's Work)
+- Labels and key numbers rendered inside each sphere
+- Interactive tooltips with shadow/gift/siddhi
 
 ## MCP Server
 
