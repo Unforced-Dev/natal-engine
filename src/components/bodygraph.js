@@ -8,7 +8,6 @@ import {
   GATE_PATHS,
   CENTER_SHAPES,
   GATE_CIRCLE_POSITIONS,
-  GATE_TEXT_POSITIONS,
   VIEWBOX
 } from '../data/bodygraph-svg-data.js';
 
@@ -46,9 +45,9 @@ const CENTER_INFO = {
   Ajna: { name: 'Ajna', short: 'AJ', theme: 'Conceptualization', description: 'Mental awareness, processing, opinions' },
   Throat: { name: 'Throat', short: 'TH', theme: 'Manifestation', description: 'Communication, expression, action' },
   G: { name: 'G Center', short: 'G', theme: 'Identity & Direction', description: 'Love, identity, direction in life' },
-  Ego: { name: 'Heart', short: 'HT', theme: 'Willpower', description: 'Ego, willpower, material world' },
-  Spleen: { name: 'Spleen', short: 'SP', theme: 'Intuition & Survival', description: 'Intuition, health, survival instincts' },
-  SolarPlexus: { name: 'Solar Plexus', short: 'SP', theme: 'Emotions', description: 'Emotional wave, feelings, desires' },
+  Ego: { name: 'Heart', short: 'EG', theme: 'Willpower', description: 'Ego, willpower, material world' },
+  Spleen: { name: 'Spleen', short: 'SN', theme: 'Intuition & Survival', description: 'Intuition, health, survival instincts' },
+  SolarPlexus: { name: 'Solar Plexus', short: 'EM', theme: 'Emotions', description: 'Emotional wave, feelings, desires' },
   Sacral: { name: 'Sacral', short: 'SC', theme: 'Life Force', description: 'Vital energy, sexuality, work capacity' },
   Root: { name: 'Root', short: 'RT', theme: 'Pressure & Drive', description: 'Adrenaline, stress, drive to act' }
 };
@@ -180,7 +179,6 @@ function drawGatePath(svg, gateNum, activationType, isCompleteChannel = false) {
  */
 function drawGateLabel(svg, gateNum, gateData, personalityGates, designGates) {
   const circlePos = GATE_CIRCLE_POSITIONS[gateNum];
-  const textPos = GATE_TEXT_POSITIONS[gateNum];
   if (!circlePos) return;
 
   const hasP = personalityGates.has(gateNum);
@@ -192,14 +190,15 @@ function drawGateLabel(svg, gateNum, gateData, personalityGates, designGates) {
     style: 'cursor: pointer;'
   });
 
-  const x = textPos?.x || circlePos.cx;
-  const y = textPos?.y || circlePos.cy;
+  // Always use circle center for text positioning
+  const cx = circlePos.cx;
+  const cy = circlePos.cy;
 
   if (isActivated) {
     // Activated gates get yellow/gold circles
     const circle = createSvgElement('circle', {
-      cx: circlePos.cx,
-      cy: circlePos.cy,
+      cx: cx,
+      cy: cy,
       r: circlePos.r,
       fill: '#fef3c7',
       stroke: '#d97706',
@@ -208,10 +207,10 @@ function drawGateLabel(svg, gateNum, gateData, personalityGates, designGates) {
     g.appendChild(circle);
 
     const text = createSvgElement('text', {
-      x: x,
-      y: y + 1,
+      x: cx,
+      y: cy,
       'text-anchor': 'middle',
-      'dominant-baseline': 'middle',
+      'dominant-baseline': 'central',
       'font-size': '13',
       'font-weight': '700',
       fill: '#78350f',
@@ -222,10 +221,10 @@ function drawGateLabel(svg, gateNum, gateData, personalityGates, designGates) {
   } else {
     // Inactive gates - more visible text
     const text = createSvgElement('text', {
-      x: x,
-      y: y + 1,
+      x: cx,
+      y: cy,
       'text-anchor': 'middle',
-      'dominant-baseline': 'middle',
+      'dominant-baseline': 'central',
       'font-size': '11',
       'font-weight': '600',
       fill: '#9ca3af',
@@ -305,8 +304,10 @@ export function renderBodygraph(container, data) {
   const existing = container.querySelector('.bodygraph-svg');
   if (existing) existing.remove();
 
+  // Add padding to prevent edge cutoff
+  const padding = 20;
   const svg = createSvgElement('svg', {
-    viewBox: `${VIEWBOX.minX} ${VIEWBOX.minY} ${VIEWBOX.width} ${VIEWBOX.height}`,
+    viewBox: `${VIEWBOX.minX - padding} ${VIEWBOX.minY} ${VIEWBOX.width + padding * 2} ${VIEWBOX.height}`,
     class: 'bodygraph-svg',
     style: 'max-width: 420px; height: auto; display: block; margin: 0 auto 1rem;'
   });

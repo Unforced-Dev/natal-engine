@@ -566,81 +566,6 @@ function renderGeneKeys(data) {
   renderGeneKeysChart(chartWrapper, data);
 }
 
-// Render Unified Cross-System Summary
-function renderUnifiedSummary(astrology, humanDesign, geneKeys) {
-  const container = document.getElementById('unified-summary');
-
-  // Get key data from each system
-  const sunSign = astrology.sun.sign;
-  const sunGate = humanDesign.gates.personality.sun;
-  const lifeWork = geneKeys.activationSequence.lifeWork;
-
-  // Moon data
-  const moonSign = astrology.moon.sign;
-  const moonGate = humanDesign.gates.personality.moon;
-
-  container.innerHTML = `
-    <div class="unified-header">
-      <h2>Your Cosmic Blueprint</h2>
-      <p class="unified-subtitle">How the same celestial positions manifest across three wisdom traditions</p>
-    </div>
-
-    <div class="unified-grid">
-      <div class="unified-column">
-        <div class="unified-planet">
-          <span class="unified-planet-symbol">☉</span>
-          <span class="unified-planet-name">Sun</span>
-        </div>
-        <div class="unified-systems">
-          <div class="unified-system astrology">
-            <span class="system-label">Astrology</span>
-            <span class="system-value">${sunSign.symbol} ${sunSign.name}</span>
-            <span class="system-desc">Core identity & ego expression</span>
-          </div>
-          <div class="unified-system humandesign">
-            <span class="system-label">Human Design</span>
-            <span class="system-value">Gate ${sunGate?.gate}.${sunGate?.line}</span>
-            <span class="system-desc">${sunGate?.name || ''} - ${sunGate?.theme || ''}</span>
-          </div>
-          <div class="unified-system genekeys">
-            <span class="system-label">Gene Keys</span>
-            <span class="system-value">Key ${lifeWork.key}: ${lifeWork.gift}</span>
-            <span class="system-desc">${lifeWork.shadow} → ${lifeWork.gift} → ${lifeWork.siddhi}</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="unified-column">
-        <div class="unified-planet">
-          <span class="unified-planet-symbol">☽</span>
-          <span class="unified-planet-name">Moon</span>
-        </div>
-        <div class="unified-systems">
-          <div class="unified-system astrology">
-            <span class="system-label">Astrology</span>
-            <span class="system-value">${moonSign.symbol} ${moonSign.name}</span>
-            <span class="system-desc">Emotional needs & instincts</span>
-          </div>
-          <div class="unified-system humandesign">
-            <span class="system-label">Human Design</span>
-            <span class="system-value">Gate ${moonGate?.gate}.${moonGate?.line}</span>
-            <span class="system-desc">${moonGate?.name || ''} - ${moonGate?.theme || ''}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="unified-essence">
-      <div class="essence-title">Your Essence</div>
-      <div class="essence-content">
-        <span class="essence-type">${humanDesign.type.name}</span> with
-        <span class="essence-sun">${sunSign.name} Sun</span> expressing through
-        <span class="essence-gift">${lifeWork.gift}</span>
-      </div>
-    </div>
-  `;
-}
-
 // Main calculation
 async function calculateNatalChart(birthDate, birthTime, manualCoords, skipURLUpdate = false) {
   const timeParts = birthTime.split(':');
@@ -677,7 +602,6 @@ async function calculateNatalChart(birthDate, birthTime, manualCoords, skipURLUp
   calculatedData = { astrology, humandesign: humanDesign, genekeys: geneKeys };
 
   // Render
-  renderUnifiedSummary(astrology, humanDesign, geneKeys);
   renderAstrology(astrology);
   renderHumanDesign(humanDesign);
   renderGeneKeys(geneKeys);
