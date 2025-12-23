@@ -447,6 +447,75 @@ describe('Gene Keys Calculations', () => {
   });
 });
 
+describe('Human Design - Verified User Charts', () => {
+  test('Aaron G - Generator 3/5 (verified against bodygraph.io)', () => {
+    // September 6, 1992, 00:04 PDT, Vida, Oregon
+    // Verified against bodygraph.io official chart
+    const result = calculateHumanDesign('1992-09-06', 0 + 4/60, -7);
+
+    assert.strictEqual(result.type.name, 'Generator', 'Type should be Generator');
+    assert.strictEqual(result.authority.name, 'Emotional Authority', 'Authority should be Emotional');
+    assert.strictEqual(result.profile.numbers, '3/5', 'Profile should be 3/5');
+
+    // Personality gates (Black)
+    assert.strictEqual(result.gates.personality.sun.gate, 64, 'Personality Sun should be gate 64');
+    assert.strictEqual(result.gates.personality.sun.line, 3, 'Personality Sun should be line 3');
+    assert.strictEqual(result.gates.personality.earth.gate, 63, 'Personality Earth should be gate 63');
+    assert.strictEqual(result.gates.personality.moon.gate, 38, 'Personality Moon should be gate 38');
+    assert.strictEqual(result.gates.personality.northNode.gate, 11, 'Personality North Node should be gate 11');
+
+    // Design gates (Red) - these were previously broken
+    assert.strictEqual(result.gates.design.sun.gate, 35, 'Design Sun should be gate 35');
+    assert.strictEqual(result.gates.design.sun.line, 5, 'Design Sun should be line 5');
+    assert.strictEqual(result.gates.design.earth.gate, 5, 'Design Earth should be gate 5');
+    assert.strictEqual(result.gates.design.moon.gate, 29, 'Design Moon should be gate 29');
+    assert.strictEqual(result.gates.design.northNode.gate, 10, 'Design North Node should be gate 10');
+    assert.strictEqual(result.gates.design.mercury.gate, 12, 'Design Mercury should be gate 12');
+    assert.strictEqual(result.gates.design.venus.gate, 35, 'Design Venus should be gate 35');
+    assert.strictEqual(result.gates.design.mars.gate, 42, 'Design Mars should be gate 42');
+    assert.strictEqual(result.gates.design.jupiter.gate, 40, 'Design Jupiter should be gate 40');
+
+    // Incarnation Cross
+    assert.ok(
+      result.incarnationCross.fullName.includes('Consciousness'),
+      'Cross should be Right Angle Cross of Consciousness'
+    );
+  });
+
+  test('Kathleen M - Generator 6/2 (verified against bodygraph.io)', () => {
+    // June 13, 1991, 08:40 EDT, Salem, MA
+    // Verified against bodygraph.io official chart
+    const result = calculateHumanDesign('1991-06-13', 8 + 40/60, -4);
+
+    assert.strictEqual(result.type.name, 'Generator', 'Type should be Generator');
+    assert.strictEqual(result.authority.name, 'Sacral Authority', 'Authority should be Sacral');
+    assert.strictEqual(result.profile.numbers, '6/2', 'Profile should be 6/2');
+
+    // Personality gates (Black)
+    assert.strictEqual(result.gates.personality.sun.gate, 45, 'Personality Sun should be gate 45');
+    assert.strictEqual(result.gates.personality.sun.line, 6, 'Personality Sun should be line 6');
+    assert.strictEqual(result.gates.personality.earth.gate, 26, 'Personality Earth should be gate 26');
+    assert.strictEqual(result.gates.personality.northNode.gate, 54, 'Personality North Node should be gate 54');
+    assert.strictEqual(result.gates.personality.southNode.gate, 53, 'Personality South Node should be gate 53');
+
+    // Design gates (Red) - critical accuracy checks
+    assert.strictEqual(result.gates.design.sun.gate, 36, 'Design Sun should be gate 36');
+    assert.strictEqual(result.gates.design.sun.line, 2, 'Design Sun should be line 2');
+    assert.strictEqual(result.gates.design.earth.gate, 6, 'Design Earth should be gate 6');
+    assert.strictEqual(result.gates.design.moon.gate, 37, 'Design Moon should be gate 37');
+    assert.strictEqual(result.gates.design.moon.line, 4, 'Design Moon should be line 4');
+    assert.strictEqual(result.gates.design.northNode.gate, 60, 'Design North Node should be gate 60');
+    assert.strictEqual(result.gates.design.northNode.line, 1, 'Design North Node should be line 1');
+    assert.strictEqual(result.gates.design.southNode.gate, 56, 'Design South Node should be gate 56');
+
+    // Incarnation Cross
+    assert.ok(
+      result.incarnationCross.fullName.includes('Confrontation'),
+      'Cross should be Left Angle Cross of Confrontation'
+    );
+  });
+});
+
 describe('Design Date Calculation (88° Solar Arc)', () => {
   test('Design date is approximately 88 days before birth', () => {
     const hd = calculateHumanDesign('2000-06-15', 12, 0);
