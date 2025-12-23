@@ -327,63 +327,38 @@ export function calculateHumanDesign(birthDate, birthHour = 12, timezone = 0) {
   // Calculate design positions (88 degrees of Sun before birth)
   // The Sun doesn't move exactly 1° per day - it varies from ~0.9856°/day on average
   // (faster in winter ~1.02°/day, slower in summer ~0.95°/day due to Earth's elliptical orbit)
-  // We need to iterate backwards to find the exact moment when Sun was 88° before birth
+  // We need to find the EXACT MOMENT (date + time) when Sun was 88° before birth
 
   const personalitySunLong = personalityPos.sun.longitude;
   const designSunTarget = (personalitySunLong - 88 + 360) % 360;
 
-  // Start with rough estimate: ~88-90 days before birth
+  // Start with rough estimate: ~88-90 days before birth, same hour
   let designDate = new Date(year, month - 1, day - 89);
   let designYear = designDate.getFullYear();
   let designMonth = designDate.getMonth() + 1;
   let designDay = designDate.getDate();
+  let designHour = birthHour; // Will be refined to find exact moment
 
-  // Iteratively search for the exact date when Sun was at target longitude
-  // Maximum 20 iterations to find the date within 0.01° accuracy
+  // Phase 1: Find the approximate day (within 1 day accuracy)
   let designPos = null;
-  let bestDiff = 360;
-  let bestDate = { year: designYear, month: designMonth, day: designDay };
-
   for (let iteration = 0; iteration < 20; iteration++) {
-    designPos = calculateBirthPositions(designYear, designMonth, designDay, birthHour, timezone);
+    designPos = calculateBirthPositions(designYear, designMonth, designDay, 12, timezone);
     const currentSunLong = designPos.sun.longitude;
 
-    // Calculate angular difference
-    // We want: currentSunLong = designSunTarget
-    // If currentSunLong > designSunTarget, we're too far forward in time (need to go back)
-    // If currentSunLong < designSunTarget, we're too far back in time (need to go forward)
     let diff = currentSunLong - designSunTarget;
-
-    // Handle wraparound at 0°/360° boundary
-    // For Design calculation, we're going backwards ~88 days, so we expect
-    // the target to be less than birth position (unless we cross the 0° boundary)
     if (diff > 180) diff -= 360;
     if (diff < -180) diff += 360;
 
-    // If we're within 0.01° (about 1 minute of arc), we're done
-    if (Math.abs(diff) < 0.01) {
+    // Within ~1 day (Sun moves ~1° per day)
+    if (Math.abs(diff) < 1.0) {
       break;
     }
 
-    // Track best result in case we don't converge perfectly
-    if (Math.abs(diff) < Math.abs(bestDiff)) {
-      bestDiff = diff;
-      bestDate = { year: designYear, month: designMonth, day: designDay };
-    }
-
     // Adjust date based on how far off we are
-    // Sun moves forward in time at ~0.9856°/day
-    // If diff > 0, current sun is ahead of target, so we need to go BACK in time (subtract days)
-    // If diff < 0, current sun is behind target, so we need to go FORWARD in time (add days)
     const daysToAdjust = -Math.round(diff / 0.9856);
-
     if (daysToAdjust === 0) {
-      // We're very close but not quite there - try small adjustments
-      if (diff > 0) {
-        designDay -= 1; // Go back in time
-      } else {
-        designDay += 1; // Go forward in time
-      }
+      if (diff > 0) designDay -= 1;
+      else designDay += 1;
     } else {
       designDay += daysToAdjust;
     }
@@ -395,13 +370,63 @@ export function calculateHumanDesign(birthDate, birthHour = 12, timezone = 0) {
     designDay = designDate.getDate();
   }
 
-  // Use the best result we found
-  if (Math.abs(bestDiff) < Math.abs(designPos.sun.longitude - designSunTarget)) {
-    designYear = bestDate.year;
-    designMonth = bestDate.month;
-    designDay = bestDate.day;
-    designPos = calculateBirthPositions(designYear, designMonth, designDay, birthHour, timezone);
+  // Phase 2: Find the exact hour and minute using binary search
+  // Search across a 48-hour window centered on our best day estimate
+  // Use fractional days for precision
+  let lowDayOffset = -1.0; // 1 day before our estimate
+  let highDayOffset = 1.0; // 1 day after our estimate
+
+  for (let iteration = 0; iteration < 30; iteration++) {
+    const midDayOffset = (lowDayOffset + highDayOffset) / 2;
+
+    // Calculate date/time from day offset
+    // Each day offset represents fractional days from noon on our estimate date
+    const totalDays = midDayOffset;
+    const daysToAdd = Math.floor(totalDays);
+    const fractionalDay = totalDays - daysToAdd;
+    const hourFromNoon = fractionalDay * 24; // Convert fraction of day to hours
+
+    // Start from noon on design day, add offset
+    let searchDate = new Date(designYear, designMonth - 1, designDay + daysToAdd);
+    const searchYear = searchDate.getFullYear();
+    const searchMonth = searchDate.getMonth() + 1;
+    const searchDay = searchDate.getDate();
+    const searchHour = 12 + hourFromNoon; // Noon + offset hours
+
+    designPos = calculateBirthPositions(searchYear, searchMonth, searchDay, searchHour, timezone);
+    const currentSunLong = designPos.sun.longitude;
+
+    let diff = currentSunLong - designSunTarget;
+    if (diff > 180) diff -= 360;
+    if (diff < -180) diff += 360;
+
+    // Within 0.001° accuracy (about 1.4 minutes of time)
+    if (Math.abs(diff) < 0.001) {
+      designYear = searchYear;
+      designMonth = searchMonth;
+      designDay = searchDay;
+      designHour = searchHour;
+      break;
+    }
+
+    // Binary search: adjust search range
+    // If diff > 0, Sun is ahead of target, need to go back in time (lower offset)
+    // If diff < 0, Sun is behind target, need to go forward in time (higher offset)
+    if (diff > 0) {
+      highDayOffset = midDayOffset;
+    } else {
+      lowDayOffset = midDayOffset;
+    }
+
+    // Update best result
+    designYear = searchYear;
+    designMonth = searchMonth;
+    designDay = searchDay;
+    designHour = searchHour;
   }
+
+  // Final calculation at the exact Design moment
+  designPos = calculateBirthPositions(designYear, designMonth, designDay, designHour, timezone);
 
   // Build gate activations for all planets
   const personalityGates = {
