@@ -480,6 +480,18 @@ describe('Human Design - Verified User Charts', () => {
       result.incarnationCross.fullName.includes('Consciousness'),
       'Cross should be Right Angle Cross of Consciousness'
     );
+
+    // Defined Centers
+    assert.ok(result.centers.definedNames.includes('sacral'), 'Sacral should be defined');
+    assert.ok(result.centers.definedNames.includes('g'), 'G Center should be defined');
+    assert.ok(result.centers.definedNames.includes('solar'), 'Solar Plexus should be defined');
+    assert.strictEqual(result.centers.definedNames.length, 3, 'Should have exactly 3 defined centers');
+
+    // Channels
+    const channelPairs = result.channels.map(c => c.gates.sort((a,b) => a-b).join('-'));
+    assert.ok(channelPairs.includes('5-15'), 'Should have channel 5-15 (Rhythm)');
+    assert.ok(channelPairs.includes('6-59'), 'Should have channel 6-59 (Intimacy)');
+    assert.strictEqual(result.channels.length, 2, 'Should have exactly 2 channels');
   });
 
   test('Kathleen M - Generator 6/2 (verified against bodygraph.io)', () => {
@@ -513,6 +525,16 @@ describe('Human Design - Verified User Charts', () => {
       result.incarnationCross.fullName.includes('Confrontation'),
       'Cross should be Left Angle Cross of Confrontation'
     );
+
+    // Defined Centers
+    assert.ok(result.centers.definedNames.includes('sacral'), 'Sacral should be defined');
+    assert.ok(result.centers.definedNames.includes('root'), 'Root should be defined');
+    assert.strictEqual(result.centers.definedNames.length, 2, 'Should have exactly 2 defined centers');
+
+    // Channels
+    const channelPairs = result.channels.map(c => c.gates.sort((a,b) => a-b).join('-'));
+    assert.ok(channelPairs.includes('42-53'), 'Should have channel 42-53 (Maturation)');
+    assert.strictEqual(result.channels.length, 1, 'Should have exactly 1 channel');
   });
 });
 
