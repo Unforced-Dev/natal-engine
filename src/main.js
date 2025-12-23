@@ -488,29 +488,25 @@ function getDefinitionType(channelCount) {
 function renderGeneKeys(data) {
   const container = document.getElementById('genekeys-result');
 
-  const arrow = `<svg class="gk-arrow" viewBox="0 0 20 14"><path d="M 0 7 L 14 7 M 10 3 L 14 7 L 10 11"/></svg>`;
-
-  const renderSphere = (sphereData) => `
-    <div class="gk-sphere">
-      <div class="gk-sphere-key">${sphereData.keyLine}</div>
-      <div class="gk-sphere-label">${sphereData.sphere}</div>
-      <div class="gk-sphere-gift">${sphereData.gift}</div>
-    </div>
-  `;
-
-  const renderSpectrum = (sphereData) => `
-    <div class="gk-spectrum-row">
-      <div class="gk-spectrum-item shadow">
-        <div class="gk-spectrum-label">Shadow</div>
-        <div class="gk-spectrum-value">${sphereData.shadow}</div>
+  const renderSphereCard = (sphereData, colorClass = '', labelOverride = '') => `
+    <div class="gk-sphere-card ${colorClass}">
+      <div class="gk-sphere-header">
+        <span class="gk-sphere-key">${sphereData.keyLine}</span>
+        <span class="gk-sphere-label">${labelOverride || sphereData.sphere}</span>
       </div>
-      <div class="gk-spectrum-item gift">
-        <div class="gk-spectrum-label">Gift</div>
-        <div class="gk-spectrum-value">${sphereData.gift}</div>
-      </div>
-      <div class="gk-spectrum-item siddhi">
-        <div class="gk-spectrum-label">Siddhi</div>
-        <div class="gk-spectrum-value">${sphereData.siddhi}</div>
+      <div class="gk-sphere-spectrum">
+        <div class="gk-spectrum-item shadow">
+          <span class="label">Shadow</span>
+          <span class="value">${sphereData.shadow}</span>
+        </div>
+        <div class="gk-spectrum-item gift">
+          <span class="label">Gift</span>
+          <span class="value">${sphereData.gift}</span>
+        </div>
+        <div class="gk-spectrum-item siddhi">
+          <span class="label">Siddhi</span>
+          <span class="value">${sphereData.siddhi}</span>
+        </div>
       </div>
     </div>
   `;
@@ -519,46 +515,50 @@ function renderGeneKeys(data) {
   const vs = data.venusSequence;
   const ps = data.pearlSequence;
 
+  // Core is the same Gene Key as Vocation (Design Mars position)
+  // Purpose is shared between Activation and Venus sequences
+  // Life's Work is shared between Activation and Pearl (as Brand)
+
   container.innerHTML = `
     <div class="chart-wrapper"></div>
 
-    <div class="gk-sequence">
-      <div class="gk-sequence-title">Activation Sequence</div>
-      <div class="gk-spheres-row">
-        ${renderSphere(as.lifeWork)}
-        ${arrow}
-        ${renderSphere(as.evolution)}
-        ${arrow}
-        ${renderSphere(as.radiance)}
-        ${arrow}
-        ${renderSphere(as.purpose)}
+    <details class="collapsible gk-sequence-details activation" open>
+      <summary>Activation Sequence (Green)</summary>
+      <div class="collapsible-content">
+        <div class="gk-sequence-grid">
+          ${renderSphereCard(as.lifeWork, 'activation')}
+          ${renderSphereCard(as.evolution, 'activation')}
+          ${renderSphereCard(as.radiance, 'activation')}
+          ${renderSphereCard(as.purpose, 'activation')}
+        </div>
       </div>
-      ${renderSpectrum(as.lifeWork)}
-    </div>
+    </details>
 
-    <div class="gk-sequence">
-      <div class="gk-sequence-title">Venus Sequence</div>
-      <div class="gk-spheres-row">
-        ${renderSphere(vs.attraction)}
-        ${arrow}
-        ${renderSphere(vs.iq)}
-        ${arrow}
-        ${renderSphere(vs.eq)}
-        ${arrow}
-        ${renderSphere(vs.sq)}
+    <details class="collapsible gk-sequence-details venus">
+      <summary>Venus Sequence (Red)</summary>
+      <div class="collapsible-content">
+        <div class="gk-sequence-grid">
+          ${renderSphereCard(as.purpose, 'venus', 'Purpose (Entry)')}
+          ${renderSphereCard(ps.vocation, 'venus', 'Core')}
+          ${renderSphereCard(vs.sq, 'venus')}
+          ${renderSphereCard(vs.iq, 'venus')}
+          ${renderSphereCard(vs.eq, 'venus')}
+          ${renderSphereCard(vs.attraction, 'venus')}
+        </div>
       </div>
-    </div>
+    </details>
 
-    <div class="gk-sequence">
-      <div class="gk-sequence-title">Pearl Sequence</div>
-      <div class="gk-spheres-row">
-        ${renderSphere(ps.vocation)}
-        ${arrow}
-        ${renderSphere(ps.culture)}
-        ${arrow}
-        ${renderSphere(ps.pearl)}
+    <details class="collapsible gk-sequence-details pearl">
+      <summary>Pearl Sequence (Blue)</summary>
+      <div class="collapsible-content">
+        <div class="gk-sequence-grid">
+          ${renderSphereCard(as.lifeWork, 'pearl', 'Brand')}
+          ${renderSphereCard(ps.pearl, 'pearl')}
+          ${renderSphereCard(ps.culture, 'pearl')}
+          ${renderSphereCard(ps.vocation, 'pearl', 'Vocation')}
+        </div>
       </div>
-    </div>
+    </details>
   `;
 
   // Render the visual chart

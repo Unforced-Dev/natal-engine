@@ -33,109 +33,137 @@ const COLORS = {
   }
 };
 
-// Sphere definitions with positions (viewBox: 0 0 400 480)
+// Sphere definitions with positions (viewBox: 0 0 500 620)
+// Layout based on official Gene Keys hologenetic profile diamond
+// Some spheres appear in multiple sequences and have dual colors
 const SPHERES = {
-  // Activation Sequence (Green) - outer diamond
+  // Life's Work: Activation (green) + Brand/Pearl (blue) = dual color
+  // Top of the diamond
   lifeWork: {
-    x: 200, y: 55,
-    radius: 32,
+    x: 250, y: 55,
+    radius: 40,
     sequence: 'activation',
-    label: "Life's Work"
+    secondarySequence: 'pearl', // Also serves as Brand in Pearl sequence
+    label: "Life's Work",
+    labelPos: 'above'
   },
+  // Radiance: Activation only (green)
+  // Far left on horizontal axis
   radiance: {
-    x: 40, y: 245,
-    radius: 36,
+    x: 60, y: 320,
+    radius: 42,
     sequence: 'activation',
-    label: 'Radiance'
+    label: 'Radiance',
+    labelPos: 'left'
   },
+  // Evolution: Activation only (green)
+  // Far right on horizontal axis
   evolution: {
-    x: 360, y: 245,
-    radius: 36,
+    x: 440, y: 320,
+    radius: 42,
     sequence: 'activation',
-    label: 'Evolution'
+    label: 'Evolution',
+    labelPos: 'right'
   },
+  // Purpose: Activation (green) + Venus (red) = dual color
+  // Bottom of the diamond
   purpose: {
-    x: 200, y: 435,
-    radius: 32,
+    x: 250, y: 565,
+    radius: 40,
     sequence: 'activation',
-    label: 'Purpose'
+    secondarySequence: 'venus', // Entry point into Venus sequence
+    label: 'Purpose',
+    labelPos: 'below'
   },
 
-  // Pearl Sequence (Blue) - upper inner
+  // Pearl: Pearl only (blue)
+  // Centered below Life's Work
   pearl: {
-    x: 120, y: 130,
-    radius: 26,
+    x: 250, y: 150,
+    radius: 32,
     sequence: 'pearl',
-    label: 'Pearl'
-  },
-  culture: {
-    x: 280, y: 130,
-    radius: 26,
-    sequence: 'pearl',
-    label: 'Culture'
-  },
-  core: {
-    x: 115, y: 210,
-    radius: 26,
-    sequence: 'pearl',
-    label: 'Core'
-  },
-  vocation: {
-    x: 285, y: 210,
-    radius: 26,
-    sequence: 'pearl',
-    label: 'Vocation'
-  },
-  sq: {
-    x: 200, y: 265,
-    radius: 26,
-    sequence: 'pearl',
-    label: 'SQ'
+    label: 'Pearl',
+    labelPos: 'above'
   },
 
-  // Venus Sequence (Pink/Red) - lower inner
+  // Core/Vocation: Venus (red) + Pearl (blue) = dual color
+  // Below Pearl, left side - same row as Culture
+  core: {
+    x: 175, y: 230,
+    radius: 34,
+    sequence: 'venus',
+    secondarySequence: 'pearl', // Called "Vocation" in Pearl sequence
+    label: 'Core',
+    labelPos: 'left'
+  },
+  // Culture: Pearl only (blue)
+  // Below Pearl, right side - same row as Core
+  culture: {
+    x: 325, y: 230,
+    radius: 34,
+    sequence: 'pearl',
+    label: 'Culture',
+    labelPos: 'right'
+  },
+
+  // SQ: Venus only (red)
+  // Center on horizontal axis (same level as Radiance/Evolution)
+  sq: {
+    x: 250, y: 320,
+    radius: 32,
+    sequence: 'venus',
+    label: 'SQ',
+    labelPos: 'above'
+  },
+  // IQ: Venus only (red)
+  // Below SQ, left side
   iq: {
-    x: 140, y: 320,
-    radius: 26,
+    x: 190, y: 400,
+    radius: 30,
     sequence: 'venus',
-    label: 'IQ'
+    label: 'IQ',
+    labelPos: 'left'
   },
+  // EQ: Venus only (red)
+  // Below SQ, right side
   eq: {
-    x: 260, y: 320,
-    radius: 26,
+    x: 310, y: 400,
+    radius: 30,
     sequence: 'venus',
-    label: 'EQ'
+    label: 'EQ',
+    labelPos: 'right'
   },
+  // Attraction: Venus only (red)
+  // Below IQ/EQ, centered
   attraction: {
-    x: 200, y: 370,
-    radius: 26,
+    x: 250, y: 475,
+    radius: 32,
     sequence: 'venus',
-    label: 'Attraction'
+    label: 'Attraction',
+    labelPos: 'below'
   }
 };
 
-// Connection definitions
+// Connection definitions - matching official Gene Keys diagram
 const CONNECTIONS = [
   // Activation Sequence - outer diamond (solid green)
   { from: 'lifeWork', to: 'radiance', sequence: 'activation', style: 'solid' },
   { from: 'lifeWork', to: 'evolution', sequence: 'activation', style: 'solid' },
   { from: 'radiance', to: 'purpose', sequence: 'activation', style: 'solid' },
   { from: 'evolution', to: 'purpose', sequence: 'activation', style: 'solid' },
-  // Horizontal dashed line
+  // Horizontal dashed line through middle (Radiance - SQ - Evolution)
   { from: 'radiance', to: 'evolution', sequence: 'activation', style: 'dashed' },
 
-  // Pearl Sequence - upper connections (dashed blue)
+  // Pearl Sequence (blue) - inner triangle at top
   { from: 'lifeWork', to: 'pearl', sequence: 'pearl', style: 'solid' },
-  { from: 'lifeWork', to: 'culture', sequence: 'pearl', style: 'solid' },
   { from: 'pearl', to: 'core', sequence: 'pearl', style: 'dashed' },
-  { from: 'culture', to: 'vocation', sequence: 'pearl', style: 'dashed' },
-  { from: 'core', to: 'vocation', sequence: 'pearl', style: 'solid' },
-  { from: 'core', to: 'sq', sequence: 'pearl', style: 'dashed' },
-  { from: 'vocation', to: 'sq', sequence: 'pearl', style: 'dashed' },
+  { from: 'pearl', to: 'culture', sequence: 'pearl', style: 'dashed' },
+  { from: 'core', to: 'culture', sequence: 'pearl', style: 'solid' },
 
-  // Venus Sequence - lower connections (solid red)
-  { from: 'sq', to: 'iq', sequence: 'venus', style: 'dashed' },
-  { from: 'sq', to: 'eq', sequence: 'venus', style: 'dashed' },
+  // Venus Sequence (red) - relationship pathway
+  { from: 'core', to: 'sq', sequence: 'venus', style: 'solid' },
+  { from: 'sq', to: 'iq', sequence: 'venus', style: 'solid' },
+  { from: 'sq', to: 'eq', sequence: 'venus', style: 'solid' },
   { from: 'iq', to: 'eq', sequence: 'venus', style: 'solid' },
   { from: 'iq', to: 'attraction', sequence: 'venus', style: 'solid' },
   { from: 'eq', to: 'attraction', sequence: 'venus', style: 'solid' },
@@ -143,9 +171,10 @@ const CONNECTIONS = [
 ];
 
 /**
- * Draw gradient definitions
+ * Draw gradient definitions including dual-color gradients
  */
 function addGradients(defs) {
+  // Single-color gradients
   // Green gradient for activation spheres
   const greenGrad = createSvgElement('radialGradient', {
     id: 'gk-grad-activation',
@@ -172,6 +201,37 @@ function addGradients(defs) {
   redGrad.appendChild(createSvgElement('stop', { offset: '0%', 'stop-color': '#fecaca' }));
   redGrad.appendChild(createSvgElement('stop', { offset: '100%', 'stop-color': '#fca5a5' }));
   defs.appendChild(redGrad);
+
+  // Dual-color gradients for spheres in multiple sequences
+  // Activation + Pearl (green + blue) - for Life's Work/Brand
+  const greenBlueGrad = createSvgElement('linearGradient', {
+    id: 'gk-grad-activation-pearl',
+    x1: '0%', y1: '0%', x2: '100%', y2: '100%'
+  });
+  greenBlueGrad.appendChild(createSvgElement('stop', { offset: '0%', 'stop-color': '#86efac' }));
+  greenBlueGrad.appendChild(createSvgElement('stop', { offset: '50%', 'stop-color': '#a7f3d0' }));
+  greenBlueGrad.appendChild(createSvgElement('stop', { offset: '100%', 'stop-color': '#93c5fd' }));
+  defs.appendChild(greenBlueGrad);
+
+  // Activation + Venus (green + red) - for Purpose
+  const greenRedGrad = createSvgElement('linearGradient', {
+    id: 'gk-grad-activation-venus',
+    x1: '0%', y1: '0%', x2: '100%', y2: '100%'
+  });
+  greenRedGrad.appendChild(createSvgElement('stop', { offset: '0%', 'stop-color': '#86efac' }));
+  greenRedGrad.appendChild(createSvgElement('stop', { offset: '50%', 'stop-color': '#fde68a' }));
+  greenRedGrad.appendChild(createSvgElement('stop', { offset: '100%', 'stop-color': '#fca5a5' }));
+  defs.appendChild(greenRedGrad);
+
+  // Venus + Pearl (red + blue) - for Core/Vocation
+  const redBlueGrad = createSvgElement('linearGradient', {
+    id: 'gk-grad-venus-pearl',
+    x1: '0%', y1: '0%', x2: '100%', y2: '100%'
+  });
+  redBlueGrad.appendChild(createSvgElement('stop', { offset: '0%', 'stop-color': '#fca5a5' }));
+  redBlueGrad.appendChild(createSvgElement('stop', { offset: '50%', 'stop-color': '#d8b4fe' }));
+  redBlueGrad.appendChild(createSvgElement('stop', { offset: '100%', 'stop-color': '#93c5fd' }));
+  defs.appendChild(redBlueGrad);
 }
 
 /**
@@ -239,10 +299,23 @@ function drawConnection(svg, conn, spheres) {
 
 /**
  * Draw a sphere with label
+ * Supports dual-color gradients for spheres in multiple sequences
  */
 function drawSphere(svg, key, sphere, data) {
   const colors = COLORS[sphere.sequence];
-  const gradId = `gk-grad-${sphere.sequence}`;
+
+  // Determine gradient ID - use dual gradient if sphere is in multiple sequences
+  let gradId;
+  let strokeColor = colors.stroke;
+
+  if (sphere.secondarySequence) {
+    // Use dual-color gradient
+    gradId = `gk-grad-${sphere.sequence}-${sphere.secondarySequence}`;
+    // Use a neutral/mixed stroke color for dual spheres
+    strokeColor = '#9ca3af';
+  } else {
+    gradId = `gk-grad-${sphere.sequence}`;
+  }
 
   const g = createSvgElement('g', {
     class: `gk-sphere gk-sphere-${key}`,
@@ -255,42 +328,40 @@ function drawSphere(svg, key, sphere, data) {
     cy: sphere.y,
     r: sphere.radius,
     fill: `url(#${gradId})`,
-    stroke: colors.stroke,
+    stroke: strokeColor,
     'stroke-width': '2.5'
   });
   g.appendChild(circle);
 
-  // Key number with line (e.g., "64.3")
-  const keyLine = data?.keyLine || `${data?.key || '?'}.${data?.line || '?'}`;
-  const keyText = createSvgElement('text', {
-    x: sphere.x,
-    y: sphere.y + 2,
-    'text-anchor': 'middle',
-    'dominant-baseline': 'middle',
-    'font-size': sphere.radius > 30 ? '18' : '14',
-    'font-weight': '700',
-    fill: colors.text,
-    'font-family': 'system-ui, -apple-system, sans-serif'
-  });
-  keyText.textContent = keyLine;
-  g.appendChild(keyText);
-
-  // Label above or below sphere
-  const isBottom = sphere.y > 350;
-  const isOuter = key === 'radiance' || key === 'evolution';
-  const labelY = isBottom ? sphere.y + sphere.radius + 16 : sphere.y - sphere.radius - 8;
-
+  // Label inside circle (above the number)
+  const labelFontSize = sphere.radius > 35 ? 10 : 8;
   const label = createSvgElement('text', {
     x: sphere.x,
-    y: labelY,
+    y: sphere.y - sphere.radius * 0.35,
     'text-anchor': 'middle',
-    'font-size': isOuter ? '11' : '10',
+    'dominant-baseline': 'middle',
+    'font-size': labelFontSize,
     'font-weight': '600',
     fill: colors.text,
     'font-family': 'system-ui, -apple-system, sans-serif'
   });
   label.textContent = sphere.label;
   g.appendChild(label);
+
+  // Key number with line (e.g., "64.3") below the label
+  const keyLine = data?.keyLine || `${data?.key || '?'}.${data?.line || '?'}`;
+  const keyText = createSvgElement('text', {
+    x: sphere.x,
+    y: sphere.y + sphere.radius * 0.25,
+    'text-anchor': 'middle',
+    'dominant-baseline': 'middle',
+    'font-size': sphere.radius > 35 ? '16' : '13',
+    'font-weight': '700',
+    fill: colors.text,
+    'font-family': 'system-ui, -apple-system, sans-serif'
+  });
+  keyText.textContent = keyLine;
+  g.appendChild(keyText);
 
   // Tooltip
   const title = createSvgElement('title');
@@ -310,13 +381,13 @@ export function renderGeneKeysChart(container, data) {
   const existing = container.querySelector('.genekeys-chart-svg');
   if (existing) existing.remove();
 
-  const width = 400;
-  const height = 480;
+  const width = 500;
+  const height = 620;
 
   const svg = createSvgElement('svg', {
     viewBox: `0 0 ${width} ${height}`,
     class: 'genekeys-chart-svg',
-    style: 'max-width: 420px; height: auto; display: block; margin: 0 auto 1rem;'
+    style: 'max-width: 500px; width: 100%; height: auto; display: block; margin: 0 auto 1rem;'
   });
 
   // Defs for gradients
@@ -331,8 +402,8 @@ export function renderGeneKeysChart(container, data) {
   });
   svg.appendChild(bg);
 
-  // Outer decorative ring
-  drawOuterRing(svg, 200, 245, 185);
+  // Outer decorative ring - centered on SQ (middle of the chart)
+  drawOuterRing(svg, 250, 310, 230);
 
   // Connections layer (behind spheres)
   const connectionsLayer = createSvgElement('g', { class: 'gk-connections' });
@@ -345,19 +416,26 @@ export function renderGeneKeysChart(container, data) {
   const vs = data.venusSequence || {};
   const ps = data.pearlSequence || {};
 
+  // Sphere data mapping
+  // Note: Core (Venus) and Vocation (Pearl) share the same Gene Key (design Mars)
+  // They represent the same position viewed through different sequence lenses
   const sphereData = {
+    // Activation Sequence (Green) - outer diamond
     lifeWork: as.lifeWork,
     evolution: as.evolution,
     radiance: as.radiance,
     purpose: as.purpose,
+    // Venus Sequence (Red) - relationships
     attraction: vs.attraction,
     iq: vs.iq,
     eq: vs.eq,
     sq: vs.sq,
-    vocation: ps.vocation,
+    // Core/Vocation - same sphere in both Venus (Core) and Pearl (Vocation) sequences
+    // Uses Design Mars planetary position
+    core: ps.vocation ? { ...ps.vocation, sphere: 'Core' } : null,
+    // Pearl Sequence (Blue) - prosperity
     culture: ps.culture,
-    pearl: ps.pearl,
-    core: ps.vocation ? { ...ps.vocation, sphere: 'Core' } : null
+    pearl: ps.pearl
   };
 
   // Spheres layer
@@ -365,7 +443,7 @@ export function renderGeneKeysChart(container, data) {
   svg.appendChild(spheresLayer);
 
   // Draw spheres in order (back to front)
-  const drawOrder = ['sq', 'core', 'vocation', 'pearl', 'culture', 'iq', 'eq', 'attraction', 'radiance', 'evolution', 'lifeWork', 'purpose'];
+  const drawOrder = ['sq', 'core', 'pearl', 'culture', 'iq', 'eq', 'attraction', 'radiance', 'evolution', 'lifeWork', 'purpose'];
   drawOrder.forEach(key => {
     const sphere = SPHERES[key];
     if (sphere) {

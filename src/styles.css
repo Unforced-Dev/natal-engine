@@ -823,96 +823,102 @@ header {
 }
 
 /* Gene Keys */
-.gk-sequence {
-  margin-bottom: 1.25rem;
-  padding-bottom: 1.25rem;
-  border-bottom: 1px solid var(--border);
+.gk-sequence-details {
+  margin-top: 0.5rem;
 }
 
-.gk-sequence:last-of-type {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
+.gk-sequence-details.activation summary {
+  color: #15803d;
 }
 
-.gk-sequence-title {
-  font-size: 0.65rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 0.75rem;
+.gk-sequence-details.venus summary {
+  color: #dc2626;
 }
 
-.gk-sequence-title::before { display: none; }
+.gk-sequence-details.pearl summary {
+  color: #1d4ed8;
+}
 
-.gk-spheres-row {
+.gk-sequence-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+@media (min-width: 600px) {
+  .gk-sequence-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.gk-sphere-card {
+  background: var(--bg-subtle);
+  border-radius: 8px;
+  padding: 0.75rem;
+  border-left: 3px solid var(--border);
+}
+
+.gk-sphere-card.activation {
+  border-left-color: #22c55e;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.08), transparent);
+}
+
+.gk-sphere-card.venus {
+  border-left-color: #ef4444;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), transparent);
+}
+
+.gk-sphere-card.pearl {
+  border-left-color: #3b82f6;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), transparent);
+}
+
+.gk-sphere-header {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 0.5rem;
-}
-
-.gk-sphere {
-  flex: 1;
-  text-align: center;
+  margin-bottom: 0.5rem;
 }
 
 .gk-sphere-key {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
   font-family: 'SF Mono', monospace;
 }
 
 .gk-sphere-label {
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
-  text-transform: uppercase;
-  margin-top: 0.25rem;
-}
-
-.gk-sphere-gift {
-  font-size: 0.75rem;
   font-weight: 500;
-  margin-top: 0.15rem;
 }
 
-.gk-arrow {
-  width: 16px;
-  height: 12px;
-  stroke: var(--text-muted);
-  stroke-width: 1.5;
-  fill: none;
+.gk-sphere-spectrum {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
-.gk-spectrum-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-  padding: 0.5rem;
-  background: var(--bg-subtle);
-  border-radius: 6px;
-}
-
-.gk-spectrum-item {
-  text-align: center;
+.gk-sphere-spectrum .gk-spectrum-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   font-size: 0.7rem;
 }
 
-.gk-spectrum-label {
+.gk-sphere-spectrum .label {
   color: var(--text-muted);
   font-size: 0.6rem;
   text-transform: uppercase;
 }
 
-.gk-spectrum-value {
+.gk-sphere-spectrum .value {
   font-weight: 500;
-  margin-top: 0.15rem;
+  text-align: right;
 }
 
-.gk-spectrum-item.shadow .gk-spectrum-value { color: #dc2626; }
-.gk-spectrum-item.gift .gk-spectrum-value { color: var(--warning); }
-.gk-spectrum-item.siddhi .gk-spectrum-value { color: var(--success); }
+.gk-spectrum-item.shadow .value { color: #dc2626; }
+.gk-spectrum-item.gift .value { color: var(--warning); }
+.gk-spectrum-item.siddhi .value { color: var(--success); }
 
 /* Loading */
 .loading {
