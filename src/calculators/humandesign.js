@@ -562,14 +562,48 @@ export function calculateHumanDesign(birthDate, birthHour = 12, timezone = 0) {
 }
 
 /**
- * Check if there's a motor center connected to throat
+ * Check if there's a motor center connected to throat (directly or indirectly)
+ * Uses breadth-first search through the defined channel network
  */
 function checkMotorToThroat(channels) {
   const motorCenters = ['sacral', 'heart', 'solar', 'root'];
-  return channels.some(channel =>
-    channel.centers.includes('throat') &&
-    channel.centers.some(c => motorCenters.includes(c))
-  );
+
+  // Build adjacency map of connected centers
+  const connections = new Map();
+  channels.forEach(channel => {
+    const [c1, c2] = channel.centers;
+    if (!connections.has(c1)) connections.set(c1, new Set());
+    if (!connections.has(c2)) connections.set(c2, new Set());
+    connections.get(c1).add(c2);
+    connections.get(c2).add(c1);
+  });
+
+  // If throat is not defined, no motor can connect to it
+  if (!connections.has('throat')) return false;
+
+  // BFS from throat to find any motor center
+  const visited = new Set(['throat']);
+  const queue = ['throat'];
+
+  while (queue.length > 0) {
+    const current = queue.shift();
+
+    // Check if current center is a motor
+    if (motorCenters.includes(current)) {
+      return true;
+    }
+
+    // Add unvisited neighbors to queue
+    const neighbors = connections.get(current) || new Set();
+    for (const neighbor of neighbors) {
+      if (!visited.has(neighbor)) {
+        visited.add(neighbor);
+        queue.push(neighbor);
+      }
+    }
+  }
+
+  return false;
 }
 
 /**
