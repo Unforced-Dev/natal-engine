@@ -923,13 +923,53 @@ header {
 .gk-spectrum-item.siddhi .value { color: var(--success); }
 
 /* Vedic Astrology */
+.vedic-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 .vedic-ayanamsa {
   display: flex;
-  justify-content: flex-end;
   gap: 0.5rem;
   font-size: 0.75rem;
   color: var(--text-muted);
-  margin-bottom: 1rem;
+}
+
+.vedic-name-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.vedic-name-toggle .toggle-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.name-toggle-btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+  border: 1px solid var(--border);
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.name-toggle-btn:hover {
+  border-color: var(--vedic);
+  color: var(--vedic);
+}
+
+.name-toggle-btn.active {
+  background: var(--vedic);
+  border-color: var(--vedic);
+  color: white;
 }
 
 .vedic-moon-summary {

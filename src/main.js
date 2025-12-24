@@ -500,18 +500,45 @@ const VEDIC_SYMBOLS = {
   jupiter: '♃', saturn: '♄', rahu: '☊', ketu: '☋', ascendant: 'Asc'
 };
 
+// Store last vedic data for re-render on toggle
+let lastVedicData = null;
+
+// Get sign name based on preference
+function getSignName(rashi, useWestern) {
+  if (useWestern) {
+    return rashi.westernName;
+  }
+  return rashi.name;
+}
+
 // Render Vedic Astrology
 function renderVedic(data) {
   const container = document.getElementById('vedic-result');
+  lastVedicData = data;
+
+  // Get name preference (default to Western for familiarity)
+  const useWestern = localStorage.getItem('vedicNames') !== 'sanskrit';
+
+  // Helper to get sign display
+  const signName = (rashi) => getSignName(rashi, useWestern);
+
+  // Name toggle
+  const nameToggleHtml = `
+    <div class="vedic-name-toggle">
+      <span class="toggle-label">Sign names:</span>
+      <button class="name-toggle-btn ${useWestern ? 'active' : ''}" data-names="western">Western</button>
+      <button class="name-toggle-btn ${!useWestern ? 'active' : ''}" data-names="sanskrit">Sanskrit</button>
+    </div>
+  `;
 
   // Moon Sign Summary (most important in Vedic)
   const moonSummary = `
     <div class="vedic-moon-summary">
       <div class="vedic-moon-sign">
-        <div class="vedic-label">Moon Sign (Rashi)</div>
+        <div class="vedic-label">Moon Sign</div>
         <div class="vedic-sign">${data.positions.moon.rashi.symbol}</div>
-        <div class="vedic-name">${data.positions.moon.rashi.name}</div>
-        <div class="vedic-western">(${data.positions.moon.rashi.westernName})</div>
+        <div class="vedic-name">${signName(data.positions.moon.rashi)}</div>
+        ${useWestern ? '' : `<div class="vedic-western">(${data.positions.moon.rashi.westernName})</div>`}
       </div>
       <div class="vedic-nakshatra">
         <div class="vedic-label">Nakshatra</div>
@@ -528,9 +555,12 @@ function renderVedic(data) {
 
   // Ayanamsa info
   const ayanamsaHtml = `
-    <div class="vedic-ayanamsa">
-      <span class="label">Ayanamsa (${data.ayanamsa.system}):</span>
-      <span class="value">${data.ayanamsa.formatted}</span>
+    <div class="vedic-header">
+      <div class="vedic-ayanamsa">
+        <span class="label">Ayanamsa (${data.ayanamsa.system}):</span>
+        <span class="value">${data.ayanamsa.formatted}</span>
+      </div>
+      ${nameToggleHtml}
     </div>
   `;
 
@@ -543,7 +573,7 @@ function renderVedic(data) {
       <div class="planet-row vedic">
         <span class="symbol">${VEDIC_SYMBOLS[p]}</span>
         <span class="name">${p.charAt(0).toUpperCase() + p.slice(1)}</span>
-        <span class="sign">${pos.rashi.symbol} ${pos.rashi.name}</span>
+        <span class="sign">${pos.rashi.symbol} ${signName(pos.rashi)}</span>
         <span class="degree">${pos.degree}</span>
         <span class="nakshatra">${pos.nakshatra.name} (${pos.nakshatra.pada})</span>
       </div>
@@ -551,11 +581,12 @@ function renderVedic(data) {
   }).join('');
 
   // Ascendant if available
+  const ascLabel = useWestern ? 'Ascendant' : 'Lagna';
   const ascHtml = data.positions.ascendant ? `
     <div class="planet-row vedic">
       <span class="symbol">Asc</span>
-      <span class="name">Lagna</span>
-      <span class="sign">${data.positions.ascendant.rashi.symbol} ${data.positions.ascendant.rashi.name}</span>
+      <span class="name">${ascLabel}</span>
+      <span class="sign">${data.positions.ascendant.rashi.symbol} ${signName(data.positions.ascendant.rashi)}</span>
       <span class="degree">${data.positions.ascendant.degree}</span>
       <span class="nakshatra">${data.positions.ascendant.nakshatra.name} (${data.positions.ascendant.nakshatra.pada})</span>
     </div>
@@ -583,7 +614,7 @@ function renderVedic(data) {
       return `
         <div class="house-row">
           <span class="house-num">${num}</span>
-          <span class="house-sign">${house.sign.symbol} ${house.sign.name}</span>
+          <span class="house-sign">${house.sign.symbol} ${signName(house.sign)}</span>
           <span class="house-planets">${planetsList}</span>
         </div>
       `;
@@ -625,6 +656,17 @@ function renderVedic(data) {
 
     ${housesHtml}
   `;
+
+  // Add toggle event listeners
+  container.querySelectorAll('.name-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const names = btn.dataset.names;
+      localStorage.setItem('vedicNames', names);
+      if (lastVedicData) {
+        renderVedic(lastVedicData);
+      }
+    });
+  });
 }
 
 // Render Gene Keys
