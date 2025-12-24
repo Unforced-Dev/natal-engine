@@ -20,6 +20,7 @@
 
   /* System colors */
   --astrology: #f59e0b;
+  --vedic: #8b5cf6;
   --humandesign: #3b82f6;
   --genekeys: #10b981;
 
@@ -415,6 +416,7 @@ header {
 }
 
 .tab-btn[data-tab="astrology"].active { border-bottom-color: var(--astrology); }
+.tab-btn[data-tab="vedic"].active { border-bottom-color: var(--vedic); }
 .tab-btn[data-tab="humandesign"].active { border-bottom-color: var(--humandesign); }
 .tab-btn[data-tab="genekeys"].active { border-bottom-color: var(--genekeys); }
 
@@ -919,6 +921,164 @@ header {
 .gk-spectrum-item.shadow .value { color: #dc2626; }
 .gk-spectrum-item.gift .value { color: var(--warning); }
 .gk-spectrum-item.siddhi .value { color: var(--success); }
+
+/* Vedic Astrology */
+.vedic-ayanamsa {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.vedic-moon-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 600px) {
+  .vedic-moon-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+.vedic-moon-summary > div {
+  text-align: center;
+  padding: 1rem;
+  background: var(--bg-subtle);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.vedic-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.vedic-sign {
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
+}
+
+.vedic-name {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--vedic);
+}
+
+.vedic-western {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.vedic-detail {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+.planets-grid.vedic .planet-row {
+  display: grid;
+  grid-template-columns: 2rem 5rem 1fr 4rem 1fr;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+.planets-grid.vedic .planet-row:nth-child(even) {
+  background: var(--bg-subtle);
+}
+
+.planet-row .nakshatra {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.dasha-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dasha-item {
+  display: grid;
+  grid-template-columns: 5rem 1fr auto;
+  gap: 1rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+}
+
+.dasha-item.current {
+  border-color: var(--vedic);
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.dasha-lord {
+  font-weight: 600;
+  color: var(--vedic);
+}
+
+.dasha-years {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.dasha-duration {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.dasha-note {
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.houses-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+@media (max-width: 600px) {
+  .houses-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.house-row {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem;
+  background: var(--bg-subtle);
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.house-num {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--vedic);
+}
+
+.house-sign {
+  font-size: 0.8rem;
+}
+
+.house-planets {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
 
 /* Loading */
 .loading {

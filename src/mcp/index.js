@@ -5,8 +5,9 @@
  * Provides birth chart calculation tools for AI assistants via Model Context Protocol.
  *
  * Chart Calculation Tools:
- * - calculate_natal_chart: Complete cosmic profile (all 3 systems)
+ * - calculate_natal_chart: Complete cosmic profile (all 4 systems)
  * - calculate_astrology: Western natal chart
+ * - calculate_vedic: Vedic (Jyotish) astrology chart
  * - calculate_human_design: Human Design chart
  * - calculate_gene_keys: Gene Keys profile
  * - get_planetary_positions: Raw astronomical data
@@ -28,6 +29,7 @@ import {
 // Import calculators from main library
 import {
   calculateAstrology,
+  calculateVedic,
   calculateHumanDesign,
   calculateGeneKeys,
   calculateBirthPositions,
@@ -92,6 +94,40 @@ const TOOLS = [
         location: {
           type: "string",
           description: "Birth location as city/place name (e.g., 'New York City', 'Vida, OR')"
+        },
+        latitude: {
+          type: "number",
+          description: "Birth location latitude in decimal degrees"
+        },
+        longitude: {
+          type: "number",
+          description: "Birth location longitude in decimal degrees"
+        },
+        timezone: {
+          type: "number",
+          description: "UTC timezone offset in hours"
+        }
+      },
+      required: ["birth_date"]
+    }
+  },
+  {
+    name: "calculate_vedic",
+    description: "Calculate Vedic (Jyotish) astrology chart using sidereal zodiac with Lahiri Ayanamsa. Returns planetary positions in Rashis (signs), Nakshatras (lunar mansions) with padas, Vimshottari Dasha periods, and whole-sign houses.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        birth_date: {
+          type: "string",
+          description: "Birth date in YYYY-MM-DD format"
+        },
+        birth_time: {
+          type: "string",
+          description: "Birth time in HH:MM format, 24-hour. Defaults to '12:00'."
+        },
+        location: {
+          type: "string",
+          description: "Birth location as city/place name (e.g., 'New York City', 'Mumbai, India')"
         },
         latitude: {
           type: "number",
@@ -377,6 +413,14 @@ async function handleCalculateNatalChart(args) {
     loc.longitude
   );
 
+  const vedic = calculateVedic(
+    args.birth_date,
+    birthHour,
+    loc.timezone,
+    loc.latitude,
+    loc.longitude
+  );
+
   const humanDesign = calculateHumanDesign(args.birth_date, birthHour, loc.timezone);
   const geneKeys = calculateGeneKeys(humanDesign);
 
@@ -399,6 +443,17 @@ async function handleCalculateNatalChart(args) {
       aspects: astrology.aspects,
       balance: astrology.balance,
       bigThree: astrology.bigThree
+    },
+    vedic: {
+      ayanamsa: vedic.ayanamsa,
+      moon_sign: vedic.moonSign,
+      positions: vedic.positions,
+      dasha: {
+        birth_lord: vedic.dasha.birthLord,
+        current: vedic.dasha.current,
+        dashas: vedic.dasha.dashas
+      },
+      houses: vedic.houses
     },
     human_design: {
       type: humanDesign.type,
@@ -423,6 +478,19 @@ async function handleCalculateAstrology(args) {
   const loc = await resolveLocation(args);
 
   return calculateAstrology(
+    args.birth_date,
+    birthHour,
+    loc.timezone,
+    loc.latitude,
+    loc.longitude
+  );
+}
+
+async function handleCalculateVedic(args) {
+  const birthHour = parseTime(args.birth_time);
+  const loc = await resolveLocation(args);
+
+  return calculateVedic(
     args.birth_date,
     birthHour,
     loc.timezone,
@@ -568,6 +636,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         break;
       case "calculate_astrology":
         result = await handleCalculateAstrology(args);
+        break;
+      case "calculate_vedic":
+        result = await handleCalculateVedic(args);
         break;
       case "calculate_human_design":
         result = await handleCalculateHumanDesign(args);

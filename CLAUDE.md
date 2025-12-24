@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-NatalEngine is a birth chart calculation engine for Western Astrology, Human Design, and Gene Keys. It provides clean, structured data output for apps and AI integrations - no interpretations, just the facts.
+NatalEngine is a birth chart calculation engine for Western Astrology, Vedic (Jyotish) Astrology, Human Design, and Gene Keys. It provides clean, structured data output for apps and AI integrations - no interpretations, just the facts.
 
 ## Key Commands
 
@@ -23,12 +23,13 @@ npm run mcp          # Start MCP server directly
 
 ```
 src/
-├── index.js              # Main exports (calculateAstrology, calculateHumanDesign, calculateGeneKeys)
+├── index.js              # Main exports (calculateAstrology, calculateVedic, calculateHumanDesign, calculateGeneKeys)
 ├── main.js               # Browser UI entry point
 ├── styles.css            # UI styles with dark mode support
 ├── geocode.js            # Location autocomplete & timezone detection
 ├── calculators/
 │   ├── astrology.js      # Western natal chart calculations
+│   ├── vedic.js          # Vedic (Jyotish) astrology with Lahiri ayanamsa
 │   ├── humandesign.js    # Human Design chart calculations
 │   └── astronomy.js      # Planetary position calculations (VSOP87)
 ├── components/
@@ -48,6 +49,13 @@ src/
 - Calculates: Sun, Moon, Rising, all planets, nodes, midheaven, aspects
 - Returns element/modality balance
 
+### Vedic (`src/calculators/vedic.js`)
+- Sidereal zodiac using Lahiri (Chitrapaksha) ayanamsa
+- All 27 Nakshatras with padas and ruling lords
+- Vimshottari Dasha system (120-year planetary periods)
+- Whole sign houses (Rashi-based)
+- Calculates: Rashis, Nakshatras, Dasha timeline
+
 ### Human Design (`src/calculators/humandesign.js`)
 - Calculates both Personality (birth) and Design (88° before) positions
 - Determines: Type, Strategy, Authority, Profile, Centers, Gates, Channels
@@ -61,7 +69,7 @@ src/
 ## UI Components
 
 The browser interface (`index.html` + `main.js`) features:
-- **Tab navigation**: Astrology | Human Design | Gene Keys
+- **Tab navigation**: Astrology | Vedic | Human Design | Gene Keys | Compatibility
 - **Interactive SVG charts** with tooltips
 - **Location autocomplete** with automatic timezone detection
 - **Dark mode** toggle (system/dark/light)
@@ -105,7 +113,7 @@ The project includes an MCP server for AI integration:
 }
 ```
 
-Tools: `calculate_natal_chart`, `calculate_astrology`, `calculate_human_design`, `calculate_gene_keys`, `get_planetary_positions`
+Tools: `calculate_natal_chart`, `calculate_astrology`, `calculate_vedic`, `calculate_human_design`, `calculate_gene_keys`, `get_planetary_positions`
 
 ## Development Notes
 

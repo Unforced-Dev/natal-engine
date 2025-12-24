@@ -28,9 +28,10 @@
   <div class="container">
     <header>
       <h1 class="logo">natalengine</h1>
-      <p class="subtitle">Birth chart calculator for Western Astrology, Human Design, and Gene Keys</p>
+      <p class="subtitle">Birth chart calculator for Western & Vedic Astrology, Human Design, and Gene Keys</p>
       <div class="tagline">
         <span class="tagline-item">Astrology</span>
+        <span class="tagline-item">Vedic</span>
         <span class="tagline-item">Human Design</span>
         <span class="tagline-item">Gene Keys</span>
       </div>
@@ -110,6 +111,10 @@
             <span class="tab-icon">☉</span>
             <span class="tab-label">Astrology</span>
           </button>
+          <button class="tab-btn" data-tab="vedic" role="tab" aria-selected="false">
+            <span class="tab-icon">☾</span>
+            <span class="tab-label">Vedic</span>
+          </button>
           <button class="tab-btn" data-tab="humandesign" role="tab" aria-selected="false">
             <span class="tab-icon">◎</span>
             <span class="tab-label">Human Design</span>
@@ -132,6 +137,16 @@
                 <button class="export-btn" onclick="copyJSON('astrology')">Copy JSON</button>
               </div>
               <div class="result-content" id="astrology-result"></div>
+            </div>
+          </div>
+
+          <div class="tab-panel" id="panel-vedic" role="tabpanel">
+            <div class="result-card" id="vedic-card">
+              <div class="card-header">
+                <span class="card-title">Vedic Astrology (Jyotish)</span>
+                <button class="export-btn" onclick="copyJSON('vedic')">Copy JSON</button>
+              </div>
+              <div class="result-content" id="vedic-result"></div>
             </div>
           </div>
 

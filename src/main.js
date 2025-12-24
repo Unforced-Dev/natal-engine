@@ -3,6 +3,7 @@
  */
 
 import calculateAstrology from './calculators/astrology.js';
+import calculateVedic from './calculators/vedic.js';
 import calculateHumanDesign, { calculateGeneKeys } from './calculators/humandesign.js';
 import { searchLocations, isDSTForDate } from './geocode.js';
 import { renderAstrologyChart } from './components/astrology-chart.js';
@@ -16,6 +17,7 @@ import { renderCompositeBodygraph } from './components/composite-bodygraph.js';
 // Store calculated data for export
 let calculatedData = {
   astrology: null,
+  vedic: null,
   humandesign: null,
   genekeys: null,
   compatibility: null
@@ -492,6 +494,139 @@ function getDefinitionType(channelCount) {
   return 'Quad Split';
 }
 
+// Vedic symbols
+const VEDIC_SYMBOLS = {
+  sun: '☉', moon: '☾', mercury: '☿', venus: '♀', mars: '♂',
+  jupiter: '♃', saturn: '♄', rahu: '☊', ketu: '☋', ascendant: 'Asc'
+};
+
+// Render Vedic Astrology
+function renderVedic(data) {
+  const container = document.getElementById('vedic-result');
+
+  // Moon Sign Summary (most important in Vedic)
+  const moonSummary = `
+    <div class="vedic-moon-summary">
+      <div class="vedic-moon-sign">
+        <div class="vedic-label">Moon Sign (Rashi)</div>
+        <div class="vedic-sign">${data.positions.moon.rashi.symbol}</div>
+        <div class="vedic-name">${data.positions.moon.rashi.name}</div>
+        <div class="vedic-western">(${data.positions.moon.rashi.westernName})</div>
+      </div>
+      <div class="vedic-nakshatra">
+        <div class="vedic-label">Nakshatra</div>
+        <div class="vedic-name">${data.positions.moon.nakshatra.name}</div>
+        <div class="vedic-detail">Pada ${data.positions.moon.nakshatra.pada} · Lord: ${data.positions.moon.nakshatra.lord}</div>
+      </div>
+      <div class="vedic-dasha">
+        <div class="vedic-label">Maha Dasha</div>
+        <div class="vedic-name">${data.dasha.birthLord}</div>
+        <div class="vedic-detail">${data.dasha.current ? `Current: ${data.dasha.current.lord}` : ''}</div>
+      </div>
+    </div>
+  `;
+
+  // Ayanamsa info
+  const ayanamsaHtml = `
+    <div class="vedic-ayanamsa">
+      <span class="label">Ayanamsa (${data.ayanamsa.system}):</span>
+      <span class="value">${data.ayanamsa.formatted}</span>
+    </div>
+  `;
+
+  // Planetary positions
+  const planets = ['sun', 'moon', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'rahu', 'ketu'];
+  const planetRows = planets.map(p => {
+    const pos = data.positions[p];
+    if (!pos) return '';
+    return `
+      <div class="planet-row vedic">
+        <span class="symbol">${VEDIC_SYMBOLS[p]}</span>
+        <span class="name">${p.charAt(0).toUpperCase() + p.slice(1)}</span>
+        <span class="sign">${pos.rashi.symbol} ${pos.rashi.name}</span>
+        <span class="degree">${pos.degree}</span>
+        <span class="nakshatra">${pos.nakshatra.name} (${pos.nakshatra.pada})</span>
+      </div>
+    `;
+  }).join('');
+
+  // Ascendant if available
+  const ascHtml = data.positions.ascendant ? `
+    <div class="planet-row vedic">
+      <span class="symbol">Asc</span>
+      <span class="name">Lagna</span>
+      <span class="sign">${data.positions.ascendant.rashi.symbol} ${data.positions.ascendant.rashi.name}</span>
+      <span class="degree">${data.positions.ascendant.degree}</span>
+      <span class="nakshatra">${data.positions.ascendant.nakshatra.name} (${data.positions.ascendant.nakshatra.pada})</span>
+    </div>
+  ` : '';
+
+  // Dasha timeline
+  const dashaHtml = data.dasha.dashas.slice(0, 5).map((d, i) => {
+    const startYear = d.startDate.getFullYear();
+    const endYear = d.endDate.getFullYear();
+    const isCurrent = data.dasha.current && d.lord === data.dasha.current.lord;
+    return `
+      <div class="dasha-item ${isCurrent ? 'current' : ''}">
+        <span class="dasha-lord">${d.lord}</span>
+        <span class="dasha-years">${startYear} - ${endYear}</span>
+        <span class="dasha-duration">${d.isPartial ? d.years.toFixed(1) : d.years} years</span>
+      </div>
+    `;
+  }).join('');
+
+  // Houses if available
+  let housesHtml = '';
+  if (data.houses) {
+    const houseRows = Object.entries(data.houses).slice(0, 12).map(([num, house]) => {
+      const planetsList = house.planets.map(p => p.name).join(', ') || '—';
+      return `
+        <div class="house-row">
+          <span class="house-num">${num}</span>
+          <span class="house-sign">${house.sign.symbol} ${house.sign.name}</span>
+          <span class="house-planets">${planetsList}</span>
+        </div>
+      `;
+    }).join('');
+
+    housesHtml = `
+      <details class="collapsible">
+        <summary>Houses (Whole Sign)</summary>
+        <div class="collapsible-content">
+          <div class="houses-grid">
+            ${houseRows}
+          </div>
+        </div>
+      </details>
+    `;
+  }
+
+  container.innerHTML = `
+    ${ayanamsaHtml}
+    ${moonSummary}
+
+    <div class="section-title">Planetary Positions (Sidereal)</div>
+    <div class="planets-grid vedic">
+      ${ascHtml}
+      ${planetRows}
+    </div>
+
+    <details class="collapsible" open>
+      <summary>Vimshottari Dasha Timeline</summary>
+      <div class="collapsible-content">
+        <div class="dasha-timeline">
+          ${dashaHtml}
+        </div>
+        <div class="dasha-note">
+          Birth Dasha: ${data.dasha.birthLord} · Cycle: 120 years
+        </div>
+      </div>
+    </details>
+
+    ${housesHtml}
+  `;
+}
+
 // Render Gene Keys
 function renderGeneKeys(data) {
   const container = document.getElementById('genekeys-result');
@@ -610,11 +745,19 @@ async function calculateNatalChart(birthDate, birthTime, manualCoords, skipURLUp
     location?.lon
   );
 
+  const vedic = calculateVedic(
+    birthDate,
+    birthHour,
+    timezone,
+    location?.lat,
+    location?.lon
+  );
+
   const humanDesign = calculateHumanDesign(birthDate, birthHour, timezone);
   const geneKeys = calculateGeneKeys(humanDesign);
 
   // Store for export
-  calculatedData = { astrology, humandesign: humanDesign, genekeys: geneKeys, compatibility: null };
+  calculatedData = { astrology, vedic, humandesign: humanDesign, genekeys: geneKeys, compatibility: null };
 
   // Store birth info for profile saving
   currentBirthInfo = {
@@ -630,6 +773,7 @@ async function calculateNatalChart(birthDate, birthTime, manualCoords, skipURLUp
 
   // Render
   renderAstrology(astrology);
+  renderVedic(vedic);
   renderHumanDesign(humanDesign);
   renderGeneKeys(geneKeys);
 
@@ -677,7 +821,7 @@ form.addEventListener('submit', async (e) => {
   }
 
   // Only show loading state for calculation panels, not compatibility
-  ['astrology-result', 'humandesign-result', 'genekeys-result'].forEach(id => {
+  ['astrology-result', 'vedic-result', 'humandesign-result', 'genekeys-result'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.innerHTML = '<div class="loading">Calculating...</div>';
   });
@@ -691,7 +835,7 @@ form.addEventListener('submit', async (e) => {
     );
   } catch (error) {
     console.error('Error:', error);
-    ['astrology-result', 'humandesign-result', 'genekeys-result'].forEach(id => {
+    ['astrology-result', 'vedic-result', 'humandesign-result', 'genekeys-result'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.innerHTML = `<div class="loading">Error: ${error.message}</div>`;
     });
@@ -826,7 +970,7 @@ async function initFromURL() {
     });
 
     // Show loading state for calculation panels only
-    ['astrology-result', 'humandesign-result', 'genekeys-result'].forEach(id => {
+    ['astrology-result', 'vedic-result', 'humandesign-result', 'genekeys-result'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.innerHTML = '<div class="loading">Calculating...</div>';
     });
@@ -842,7 +986,7 @@ async function initFromURL() {
       );
     } catch (error) {
       console.error('Error loading from URL:', error);
-      ['astrology-result', 'humandesign-result', 'genekeys-result'].forEach(id => {
+      ['astrology-result', 'vedic-result', 'humandesign-result', 'genekeys-result'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.innerHTML = `<div class="loading">Error: ${error.message}</div>`;
       });
