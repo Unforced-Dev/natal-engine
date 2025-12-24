@@ -74,8 +74,33 @@
           </div>
         </div>
         <button type="button" class="toggle-coords" onclick="toggleCoordinates()">Enter coordinates manually</button>
-        <button type="submit" class="calculate-btn">Calculate</button>
+        <div class="form-actions">
+          <button type="submit" class="calculate-btn">Calculate</button>
+          <button type="button" class="save-profile-btn" id="save-profile-btn" style="display: none;">
+            <span class="save-icon">+</span> Save Profile
+          </button>
+        </div>
+
+        <!-- Inline Save Form -->
+        <div class="inline-save-form" id="inline-save-form" style="display: none;">
+          <input type="text" id="profile-name-input" placeholder="Profile name (e.g., Me, Partner)" maxlength="30">
+          <div class="inline-save-actions">
+            <button type="button" class="save-confirm-btn" id="save-confirm-btn">Save</button>
+            <button type="button" class="save-cancel-btn" id="save-cancel-btn">Cancel</button>
+          </div>
+        </div>
       </form>
+
+      <!-- Profile Picker -->
+      <div class="profile-picker" id="profile-picker" style="display: none;">
+        <span class="profile-picker-label">Saved Profiles</span>
+        <select id="profile-select">
+          <option value="">-- Load a profile --</option>
+        </select>
+        <button type="button" class="delete-profile-btn" id="delete-profile-btn" style="display: none;" title="Delete profile">
+          <span>Delete</span>
+        </button>
+      </div>
     </section>
 
     <section class="results-section" id="results" style="display: none;">
@@ -92,6 +117,10 @@
           <button class="tab-btn" data-tab="genekeys" role="tab" aria-selected="false">
             <span class="tab-icon">✦</span>
             <span class="tab-label">Gene Keys</span>
+          </button>
+          <button class="tab-btn" data-tab="compatibility" role="tab" aria-selected="false">
+            <span class="tab-icon">❤</span>
+            <span class="tab-label">Compatibility</span>
           </button>
         </div>
 
@@ -123,6 +152,77 @@
                 <button class="export-btn" onclick="copyJSON('genekeys')">Copy JSON</button>
               </div>
               <div class="result-content" id="genekeys-result"></div>
+            </div>
+          </div>
+
+          <div class="tab-panel" id="panel-compatibility" role="tabpanel">
+            <div class="result-card" id="compatibility-card">
+              <div class="card-header">
+                <span class="card-title">Compatibility Analysis</span>
+                <button class="export-btn" onclick="copyJSON('compatibility')">Copy JSON</button>
+              </div>
+              <div class="result-content" id="compatibility-result">
+                <div class="compatibility-intro" id="compatibility-intro">
+                  <div class="compatibility-header">
+                    <h3>Compare Charts</h3>
+                    <p>Analyze compatibility across Astrology, Human Design, and Gene Keys</p>
+                  </div>
+
+                  <div class="compatibility-setup">
+                    <div class="profile-cards">
+                      <div class="profile-card" id="profile-card-a">
+                        <div class="profile-card-label">Person A</div>
+                        <select id="compare-person-a">
+                          <option value="current">Current Chart</option>
+                        </select>
+                        <div class="profile-card-preview" id="preview-a"></div>
+                      </div>
+
+                      <div class="vs-divider">
+                        <span>vs</span>
+                      </div>
+
+                      <div class="profile-card" id="profile-card-b">
+                        <div class="profile-card-label">Person B</div>
+                        <select id="compare-person-b">
+                          <option value="">Select profile...</option>
+                        </select>
+                        <div class="profile-card-preview" id="preview-b"></div>
+                      </div>
+                    </div>
+
+                    <div class="compare-systems">
+                      <label class="system-toggle">
+                        <input type="checkbox" id="compare-astrology" checked>
+                        <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                        <span class="toggle-label">☉ Astrology</span>
+                      </label>
+                      <label class="system-toggle">
+                        <input type="checkbox" id="compare-humandesign" checked>
+                        <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                        <span class="toggle-label">◎ Human Design</span>
+                      </label>
+                      <label class="system-toggle">
+                        <input type="checkbox" id="compare-genekeys" checked>
+                        <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                        <span class="toggle-label">✦ Gene Keys</span>
+                      </label>
+                    </div>
+
+                    <button class="compare-btn" id="compare-btn">
+                      <span class="compare-btn-text">Compare Charts</span>
+                      <span class="compare-btn-loading" style="display: none;">
+                        <span class="spinner"></span> Analyzing...
+                      </span>
+                    </button>
+
+                    <div class="no-profiles-hint" id="no-profiles-hint" style="display: none;">
+                      <p>Save at least one profile to compare charts. Calculate a chart and click "Save Profile" above.</p>
+                    </div>
+                  </div>
+                </div>
+                <div id="compatibility-results" style="display: none;"></div>
+              </div>
             </div>
           </div>
         </div>

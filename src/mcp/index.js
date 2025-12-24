@@ -4,12 +4,18 @@
  *
  * Provides birth chart calculation tools for AI assistants via Model Context Protocol.
  *
- * Tools:
+ * Chart Calculation Tools:
  * - calculate_natal_chart: Complete cosmic profile (all 3 systems)
  * - calculate_astrology: Western natal chart
  * - calculate_human_design: Human Design chart
  * - calculate_gene_keys: Gene Keys profile
  * - get_planetary_positions: Raw astronomical data
+ *
+ * Compatibility Comparison Tools:
+ * - compare_charts: Full compatibility across all systems
+ * - compare_astrology: Synastry aspects and element harmony
+ * - compare_human_design: Type dynamics, electromagnetic connections
+ * - compare_gene_keys: Shared keys and programming partners
  */
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -24,7 +30,10 @@ import {
   calculateAstrology,
   calculateHumanDesign,
   calculateGeneKeys,
-  calculateBirthPositions
+  calculateBirthPositions,
+  compareAstrology,
+  compareHumanDesign,
+  compareGeneKeys
 } from '../index.js';
 
 // Import geocoding
@@ -172,6 +181,132 @@ const TOOLS = [
         }
       },
       required: ["birth_date"]
+    }
+  },
+  // Compatibility/Comparison Tools
+  {
+    name: "compare_charts",
+    description: "Compare two birth charts for compatibility across all three systems (Astrology, Human Design, Gene Keys). Returns synastry aspects, electromagnetic connections, shared Gene Keys, and compatibility analysis.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        person_a: {
+          type: "object",
+          description: "First person's birth data",
+          properties: {
+            name: { type: "string", description: "Person's name (optional)" },
+            birth_date: { type: "string", description: "Birth date in YYYY-MM-DD format" },
+            birth_time: { type: "string", description: "Birth time in HH:MM format, 24-hour" },
+            location: { type: "string", description: "Birth location as city/place name" },
+            timezone: { type: "number", description: "UTC timezone offset in hours" }
+          },
+          required: ["birth_date"]
+        },
+        person_b: {
+          type: "object",
+          description: "Second person's birth data",
+          properties: {
+            name: { type: "string", description: "Person's name (optional)" },
+            birth_date: { type: "string", description: "Birth date in YYYY-MM-DD format" },
+            birth_time: { type: "string", description: "Birth time in HH:MM format, 24-hour" },
+            location: { type: "string", description: "Birth location as city/place name" },
+            timezone: { type: "number", description: "UTC timezone offset in hours" }
+          },
+          required: ["birth_date"]
+        },
+        systems: {
+          type: "array",
+          items: { type: "string", enum: ["astrology", "humandesign", "genekeys"] },
+          description: "Which systems to include in comparison. Defaults to all three."
+        }
+      },
+      required: ["person_a", "person_b"]
+    }
+  },
+  {
+    name: "compare_astrology",
+    description: "Calculate astrological synastry between two birth charts. Returns cross-chart aspects, element harmony, key connections (Sun-Moon, Venus-Mars), and overall compatibility score.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        person_a: {
+          type: "object",
+          properties: {
+            birth_date: { type: "string", description: "Birth date in YYYY-MM-DD format" },
+            birth_time: { type: "string", description: "Birth time in HH:MM format" },
+            location: { type: "string", description: "Birth location" },
+            timezone: { type: "number" }
+          },
+          required: ["birth_date"]
+        },
+        person_b: {
+          type: "object",
+          properties: {
+            birth_date: { type: "string", description: "Birth date in YYYY-MM-DD format" },
+            birth_time: { type: "string", description: "Birth time in HH:MM format" },
+            location: { type: "string", description: "Birth location" },
+            timezone: { type: "number" }
+          },
+          required: ["birth_date"]
+        }
+      },
+      required: ["person_a", "person_b"]
+    }
+  },
+  {
+    name: "compare_human_design",
+    description: "Calculate Human Design compatibility between two charts. Returns type interaction dynamics, electromagnetic pairs (channel completions), shared gates/channels, and center conditioning analysis.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        person_a: {
+          type: "object",
+          properties: {
+            birth_date: { type: "string", description: "Birth date in YYYY-MM-DD format" },
+            birth_time: { type: "string", description: "Birth time in HH:MM format" },
+            timezone: { type: "number" }
+          },
+          required: ["birth_date"]
+        },
+        person_b: {
+          type: "object",
+          properties: {
+            birth_date: { type: "string", description: "Birth date in YYYY-MM-DD format" },
+            birth_time: { type: "string", description: "Birth time in HH:MM format" },
+            timezone: { type: "number" }
+          },
+          required: ["birth_date"]
+        }
+      },
+      required: ["person_a", "person_b"]
+    }
+  },
+  {
+    name: "compare_gene_keys",
+    description: "Calculate Gene Keys compatibility between two profiles. Returns shared keys, programming partner pairs, sequence alignment, and emotional/vocational synergy analysis.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        person_a: {
+          type: "object",
+          properties: {
+            birth_date: { type: "string", description: "Birth date in YYYY-MM-DD format" },
+            birth_time: { type: "string", description: "Birth time in HH:MM format" },
+            timezone: { type: "number" }
+          },
+          required: ["birth_date"]
+        },
+        person_b: {
+          type: "object",
+          properties: {
+            birth_date: { type: "string", description: "Birth date in YYYY-MM-DD format" },
+            birth_time: { type: "string", description: "Birth time in HH:MM format" },
+            timezone: { type: "number" }
+          },
+          required: ["birth_date"]
+        }
+      },
+      required: ["person_a", "person_b"]
     }
   }
 ];
@@ -327,6 +462,81 @@ async function handleGetPlanetaryPositions(args) {
   );
 }
 
+// Helper to calculate all charts for a person
+async function calculateAllCharts(personArgs) {
+  const birthHour = parseTime(personArgs.birth_time);
+  const loc = await resolveLocation(personArgs);
+
+  const astrology = calculateAstrology(
+    personArgs.birth_date,
+    birthHour,
+    loc.timezone,
+    loc.latitude,
+    loc.longitude
+  );
+
+  const humanDesign = calculateHumanDesign(personArgs.birth_date, birthHour, loc.timezone);
+  const geneKeys = calculateGeneKeys(humanDesign);
+
+  return { astrology, humanDesign, geneKeys, name: personArgs.name };
+}
+
+async function handleCompareCharts(args) {
+  const systems = args.systems || ['astrology', 'humandesign', 'genekeys'];
+
+  const personA = await calculateAllCharts(args.person_a);
+  const personB = await calculateAllCharts(args.person_b);
+
+  const result = {
+    person_a: {
+      name: personA.name || 'Person A',
+      birth_date: args.person_a.birth_date,
+      birth_time: args.person_a.birth_time || '12:00'
+    },
+    person_b: {
+      name: personB.name || 'Person B',
+      birth_date: args.person_b.birth_date,
+      birth_time: args.person_b.birth_time || '12:00'
+    },
+    comparisons: {}
+  };
+
+  if (systems.includes('astrology')) {
+    result.comparisons.astrology = compareAstrology(personA.astrology, personB.astrology);
+  }
+
+  if (systems.includes('humandesign')) {
+    result.comparisons.humanDesign = compareHumanDesign(personA.humanDesign, personB.humanDesign);
+  }
+
+  if (systems.includes('genekeys')) {
+    result.comparisons.geneKeys = compareGeneKeys(personA.geneKeys, personB.geneKeys);
+  }
+
+  return result;
+}
+
+async function handleCompareAstrology(args) {
+  const personA = await calculateAllCharts(args.person_a);
+  const personB = await calculateAllCharts(args.person_b);
+
+  return compareAstrology(personA.astrology, personB.astrology);
+}
+
+async function handleCompareHumanDesign(args) {
+  const personA = await calculateAllCharts(args.person_a);
+  const personB = await calculateAllCharts(args.person_b);
+
+  return compareHumanDesign(personA.humanDesign, personB.humanDesign);
+}
+
+async function handleCompareGeneKeys(args) {
+  const personA = await calculateAllCharts(args.person_a);
+  const personB = await calculateAllCharts(args.person_b);
+
+  return compareGeneKeys(personA.geneKeys, personB.geneKeys);
+}
+
 // Create and configure server
 const server = new Server(
   {
@@ -367,6 +577,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         break;
       case "get_planetary_positions":
         result = await handleGetPlanetaryPositions(args);
+        break;
+      case "compare_charts":
+        result = await handleCompareCharts(args);
+        break;
+      case "compare_astrology":
+        result = await handleCompareAstrology(args);
+        break;
+      case "compare_human_design":
+        result = await handleCompareHumanDesign(args);
+        break;
+      case "compare_gene_keys":
+        result = await handleCompareGeneKeys(args);
         break;
       default:
         throw new Error(`Unknown tool: ${name}`);

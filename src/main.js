@@ -8,13 +8,21 @@ import { searchLocations, isDSTForDate } from './geocode.js';
 import { renderAstrologyChart } from './components/astrology-chart.js';
 import { renderBodygraph } from './components/bodygraph.js';
 import { renderGeneKeysChart } from './components/genekeys-chart.js';
+import { getProfiles, saveProfile, deleteProfile, getProfile } from './storage/profiles.js';
+import { compareAstrology, compareHumanDesign, compareGeneKeys } from './calculators/compatibility/index.js';
+import { renderSynastryChart } from './components/synastry-chart.js';
+import { renderCompositeBodygraph } from './components/composite-bodygraph.js';
 
 // Store calculated data for export
 let calculatedData = {
   astrology: null,
   humandesign: null,
-  genekeys: null
+  genekeys: null,
+  compatibility: null
 };
+
+// Current birth info for profile saving
+let currentBirthInfo = null;
 
 // DOM Elements
 const form = document.getElementById('birth-form');
@@ -599,7 +607,19 @@ async function calculateNatalChart(birthDate, birthTime, manualCoords, skipURLUp
   const geneKeys = calculateGeneKeys(humanDesign);
 
   // Store for export
-  calculatedData = { astrology, humandesign: humanDesign, genekeys: geneKeys };
+  calculatedData = { astrology, humandesign: humanDesign, genekeys: geneKeys, compatibility: null };
+
+  // Store birth info for profile saving
+  currentBirthInfo = {
+    date: birthDate,
+    time: birthTime,
+    location: location ? {
+      lat: location.lat,
+      lon: location.lon,
+      timezone: timezone,
+      name: locationName
+    } : null
+  };
 
   // Render
   renderAstrology(astrology);
@@ -608,10 +628,17 @@ async function calculateNatalChart(birthDate, birthTime, manualCoords, skipURLUp
 
   resultsSection.style.display = 'block';
 
+  // Show save profile button
+  const saveBtn = document.getElementById('save-profile-btn');
+  if (saveBtn) saveBtn.style.display = 'inline-block';
+
   // Update URL with chart parameters (unless loading from URL)
   if (!skipURLUpdate && location) {
     updateURL(birthDate, birthTime, location.lat, location.lon, timezone, locationName);
   }
+
+  // Dispatch event for compatibility preview update
+  window.dispatchEvent(new CustomEvent('chartCalculated'));
 
   if (!skipURLUpdate) {
     resultsSection.scrollIntoView({ behavior: 'smooth' });
@@ -642,8 +669,10 @@ form.addEventListener('submit', async (e) => {
     return;
   }
 
-  document.querySelectorAll('.result-content').forEach(el => {
-    el.innerHTML = '<div class="loading">Calculating...</div>';
+  // Only show loading state for calculation panels, not compatibility
+  ['astrology-result', 'humandesign-result', 'genekeys-result'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '<div class="loading">Calculating...</div>';
   });
   resultsSection.style.display = 'block';
 
@@ -655,8 +684,9 @@ form.addEventListener('submit', async (e) => {
     );
   } catch (error) {
     console.error('Error:', error);
-    document.querySelectorAll('.result-content').forEach(el => {
-      el.innerHTML = `<div class="loading">Error: ${error.message}</div>`;
+    ['astrology-result', 'humandesign-result', 'genekeys-result'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = `<div class="loading">Error: ${error.message}</div>`;
     });
   }
 });
@@ -777,9 +807,10 @@ async function initFromURL() {
       window.history.pushState({}, '', window.location.pathname);
     });
 
-    // Show loading state
-    document.querySelectorAll('.result-content').forEach(el => {
-      el.innerHTML = '<div class="loading">Calculating...</div>';
+    // Show loading state for calculation panels only
+    ['astrology-result', 'humandesign-result', 'genekeys-result'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = '<div class="loading">Calculating...</div>';
     });
     resultsSection.style.display = 'block';
 
@@ -793,9 +824,590 @@ async function initFromURL() {
       );
     } catch (error) {
       console.error('Error loading from URL:', error);
-      document.querySelectorAll('.result-content').forEach(el => {
-        el.innerHTML = `<div class="loading">Error: ${error.message}</div>`;
+      ['astrology-result', 'humandesign-result', 'genekeys-result'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = `<div class="loading">Error: ${error.message}</div>`;
       });
+    }
+  }
+}
+
+// Profile Management
+function initProfilePicker() {
+  const profilePicker = document.getElementById('profile-picker');
+  const profileSelect = document.getElementById('profile-select');
+  const deleteBtn = document.getElementById('delete-profile-btn');
+  const saveBtn = document.getElementById('save-profile-btn');
+  const comparePersonA = document.getElementById('compare-person-a');
+  const comparePersonB = document.getElementById('compare-person-b');
+
+  // Update profile dropdowns
+  function updateProfileDropdowns() {
+    const profiles = getProfiles();
+
+    // Update main profile picker
+    profileSelect.innerHTML = '<option value="">-- Select a profile --</option>';
+    profiles.forEach(p => {
+      const option = document.createElement('option');
+      option.value = p.id;
+      option.textContent = `${p.name} (${p.birthDate})`;
+      profileSelect.appendChild(option);
+    });
+
+    // Update comparison dropdowns
+    if (comparePersonA) {
+      const currentOption = comparePersonA.querySelector('option[value="current"]');
+      comparePersonA.innerHTML = '';
+      if (currentOption) comparePersonA.appendChild(currentOption);
+      profiles.forEach(p => {
+        const option = document.createElement('option');
+        option.value = p.id;
+        option.textContent = `${p.name} (${p.birthDate})`;
+        comparePersonA.appendChild(option);
+      });
+    }
+
+    if (comparePersonB) {
+      comparePersonB.innerHTML = '<option value="">-- Select a saved profile --</option>';
+      profiles.forEach(p => {
+        const option = document.createElement('option');
+        option.value = p.id;
+        option.textContent = `${p.name} (${p.birthDate})`;
+        comparePersonB.appendChild(option);
+      });
+    }
+
+    // Show/hide profile picker based on whether profiles exist
+    if (profiles.length > 0) {
+      profilePicker.style.display = 'flex';
+    }
+  }
+
+  // Load profile
+  profileSelect.addEventListener('change', async () => {
+    const profileId = profileSelect.value;
+    if (!profileId) {
+      deleteBtn.style.display = 'none';
+      return;
+    }
+
+    deleteBtn.style.display = 'inline-block';
+    const profile = getProfile(profileId);
+    if (!profile) return;
+
+    // Populate form
+    document.getElementById('birth-date').value = profile.birthDate;
+    document.getElementById('birth-time').value = profile.birthTime || '12:00';
+
+    // If cached data exists, use it directly
+    if (profile.cachedData) {
+      calculatedData = {
+        astrology: profile.cachedData.astrology,
+        humandesign: profile.cachedData.humanDesign,
+        genekeys: profile.cachedData.geneKeys,
+        compatibility: null
+      };
+
+      renderAstrology(profile.cachedData.astrology);
+      renderHumanDesign(profile.cachedData.humanDesign);
+      renderGeneKeys(profile.cachedData.geneKeys);
+      resultsSection.style.display = 'block';
+
+      currentBirthInfo = {
+        date: profile.birthDate,
+        time: profile.birthTime,
+        location: profile.location
+      };
+    } else if (profile.location) {
+      // Calculate fresh
+      selectedLocation = {
+        lat: profile.location.lat,
+        lon: profile.location.lon,
+        timezone: profile.location.timezone || Math.round(profile.location.lon / 15),
+        isDST: false,
+        name: profile.location.name
+      };
+
+      await calculateNatalChart(profile.birthDate, profile.birthTime || '12:00', {
+        lat: profile.location.lat,
+        lon: profile.location.lon,
+        tz: profile.location.timezone
+      }, true);
+    }
+  });
+
+  // Delete profile
+  deleteBtn.addEventListener('click', () => {
+    const profileId = profileSelect.value;
+    if (!profileId) return;
+
+    if (confirm('Delete this profile?')) {
+      deleteProfile(profileId);
+      updateProfileDropdowns();
+      deleteBtn.style.display = 'none';
+      profileSelect.value = '';
+    }
+  });
+
+  // Inline save form elements
+  const inlineSaveForm = document.getElementById('inline-save-form');
+  const profileNameInput = document.getElementById('profile-name-input');
+  const saveConfirmBtn = document.getElementById('save-confirm-btn');
+  const saveCancelBtn = document.getElementById('save-cancel-btn');
+
+  // Show inline save form
+  saveBtn.addEventListener('click', () => {
+    if (!currentBirthInfo || !calculatedData.astrology) {
+      alert('Please calculate a chart first.');
+      return;
+    }
+
+    // Show the inline form
+    inlineSaveForm.style.display = 'flex';
+    saveBtn.style.display = 'none';
+    profileNameInput.value = '';
+    profileNameInput.focus();
+  });
+
+  // Cancel save
+  saveCancelBtn.addEventListener('click', () => {
+    inlineSaveForm.style.display = 'none';
+    saveBtn.style.display = 'inline-flex';
+  });
+
+  // Confirm save
+  const doSaveProfile = () => {
+    const name = profileNameInput.value.trim();
+    if (!name) {
+      profileNameInput.focus();
+      return;
+    }
+
+    const profile = saveProfile({
+      name,
+      birthDate: currentBirthInfo.date,
+      birthTime: currentBirthInfo.time,
+      location: currentBirthInfo.location,
+      cachedData: {
+        astrology: calculatedData.astrology,
+        humanDesign: calculatedData.humandesign,
+        geneKeys: calculatedData.genekeys
+      }
+    });
+
+    // Hide form and show button
+    inlineSaveForm.style.display = 'none';
+    saveBtn.style.display = 'inline-flex';
+
+    // Show success feedback briefly
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<span class="save-icon">✓</span> Saved!';
+    saveBtn.style.borderColor = 'var(--success)';
+    saveBtn.style.color = 'var(--success)';
+
+    setTimeout(() => {
+      saveBtn.innerHTML = originalText;
+      saveBtn.style.borderColor = '';
+      saveBtn.style.color = '';
+    }, 2000);
+
+    updateProfileDropdowns();
+  };
+
+  saveConfirmBtn.addEventListener('click', doSaveProfile);
+
+  // Enter key to save, Escape to cancel
+  profileNameInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      doSaveProfile();
+    } else if (e.key === 'Escape') {
+      inlineSaveForm.style.display = 'none';
+      saveBtn.style.display = 'inline-flex';
+    }
+  });
+
+  // Initial load
+  updateProfileDropdowns();
+
+  // Return the update function for use elsewhere
+  return { updateProfileDropdowns };
+}
+
+// Comparison functionality
+function initComparison() {
+  const compareBtn = document.getElementById('compare-btn');
+  const compareBtnText = compareBtn?.querySelector('.compare-btn-text');
+  const compareBtnLoading = compareBtn?.querySelector('.compare-btn-loading');
+  const comparePersonA = document.getElementById('compare-person-a');
+  const comparePersonB = document.getElementById('compare-person-b');
+  const resultsDiv = document.getElementById('compatibility-results');
+  const previewA = document.getElementById('preview-a');
+  const previewB = document.getElementById('preview-b');
+  const profileCardA = document.getElementById('profile-card-a');
+  const profileCardB = document.getElementById('profile-card-b');
+  const noProfilesHint = document.getElementById('no-profiles-hint');
+
+  if (!compareBtn) return;
+
+  // Update preview when selection changes
+  const updatePreview = (selectEl, previewEl, cardEl) => {
+    const value = selectEl.value;
+
+    if (value === 'current') {
+      if (calculatedData.astrology) {
+        const sun = calculatedData.astrology.sun?.sign?.symbol || '';
+        const moon = calculatedData.astrology.moon?.sign?.symbol || '';
+        const type = calculatedData.humandesign?.type?.name || '';
+        previewEl.innerHTML = `
+          <div class="preview-signs">
+            <span class="preview-sign" title="Sun">${sun}</span>
+            <span class="preview-sign" title="Moon">${moon}</span>
+          </div>
+          <div>${type}</div>
+        `;
+        cardEl?.classList.add('has-selection');
+      } else {
+        previewEl.innerHTML = '<em>Calculate chart first</em>';
+        cardEl?.classList.remove('has-selection');
+      }
+    } else if (value) {
+      const profile = getProfile(value);
+      if (profile?.cachedData) {
+        const sun = profile.cachedData.astrology?.sun?.sign?.symbol || '';
+        const moon = profile.cachedData.astrology?.moon?.sign?.symbol || '';
+        const type = profile.cachedData.humanDesign?.type?.name || '';
+        previewEl.innerHTML = `
+          <div class="preview-signs">
+            <span class="preview-sign" title="Sun">${sun}</span>
+            <span class="preview-sign" title="Moon">${moon}</span>
+          </div>
+          <div>${type}</div>
+        `;
+        cardEl?.classList.add('has-selection');
+      }
+    } else {
+      previewEl.innerHTML = '';
+      cardEl?.classList.remove('has-selection');
+    }
+  };
+
+  comparePersonA?.addEventListener('change', () => updatePreview(comparePersonA, previewA, profileCardA));
+  comparePersonB?.addEventListener('change', () => updatePreview(comparePersonB, previewB, profileCardB));
+
+  // Initial preview update
+  setTimeout(() => {
+    updatePreview(comparePersonA, previewA, profileCardA);
+
+    // Show hint if no profiles
+    const profiles = getProfiles();
+    if (profiles.length === 0 && noProfilesHint) {
+      noProfilesHint.style.display = 'block';
+    }
+  }, 100);
+
+  // Update preview when chart is calculated
+  window.addEventListener('chartCalculated', () => {
+    updatePreview(comparePersonA, previewA, profileCardA);
+  });
+
+  compareBtn.addEventListener('click', async () => {
+    const personAId = comparePersonA.value;
+    const personBId = comparePersonB.value;
+
+    if (!personBId) {
+      // Highlight Person B card
+      profileCardB?.classList.add('needs-selection');
+      setTimeout(() => profileCardB?.classList.remove('needs-selection'), 1500);
+      return;
+    }
+
+    // Get charts for both people
+    let chartA, chartB;
+
+    if (personAId === 'current') {
+      if (!calculatedData.astrology) {
+        alert('Please calculate a chart first (Person A is set to "Current Chart")');
+        return;
+      }
+      chartA = {
+        astrology: calculatedData.astrology,
+        humanDesign: calculatedData.humandesign,
+        geneKeys: calculatedData.genekeys
+      };
+    } else {
+      const profileA = getProfile(personAId);
+      if (!profileA?.cachedData) {
+        alert('Profile A has no cached data. Please load and calculate it first.');
+        return;
+      }
+      chartA = profileA.cachedData;
+    }
+
+    const profileB = getProfile(personBId);
+    if (!profileB?.cachedData) {
+      alert('Profile B has no cached data. Please load and calculate it first.');
+      return;
+    }
+    chartB = profileB.cachedData;
+
+    // Get selected systems
+    const includeAstrology = document.getElementById('compare-astrology').checked;
+    const includeHD = document.getElementById('compare-humandesign').checked;
+    const includeGK = document.getElementById('compare-genekeys').checked;
+
+    // Show loading state
+    compareBtn.disabled = true;
+    if (compareBtnText) compareBtnText.style.display = 'none';
+    if (compareBtnLoading) compareBtnLoading.style.display = 'flex';
+
+    try {
+      const results = {};
+
+      if (includeAstrology && chartA.astrology && chartB.astrology) {
+        results.astrology = compareAstrology(chartA.astrology, chartB.astrology);
+      }
+
+      if (includeHD && chartA.humanDesign && chartB.humanDesign) {
+        results.humanDesign = compareHumanDesign(chartA.humanDesign, chartB.humanDesign);
+      }
+
+      if (includeGK && chartA.geneKeys && chartB.geneKeys) {
+        results.geneKeys = compareGeneKeys(chartA.geneKeys, chartB.geneKeys);
+      }
+
+      calculatedData.compatibility = results;
+      renderCompatibilityResults(results, chartA, chartB);
+      resultsDiv.style.display = 'block';
+      document.querySelector('.compatibility-intro').style.display = 'none';
+
+    } catch (error) {
+      console.error('Comparison error:', error);
+      alert('Error comparing charts: ' + error.message);
+    } finally {
+      compareBtn.disabled = false;
+      if (compareBtnText) compareBtnText.style.display = '';
+      if (compareBtnLoading) compareBtnLoading.style.display = 'none';
+    }
+  });
+}
+
+// Render compatibility results
+function renderCompatibilityResults(results, chartA, chartB) {
+  const container = document.getElementById('compatibility-results');
+
+  let html = '';
+
+  // Astrology results
+  if (results.astrology) {
+    const a = results.astrology;
+    const scoreClass = a.overallScore >= 80 ? 'excellent' :
+                       a.overallScore >= 65 ? 'good' :
+                       a.overallScore >= 50 ? 'moderate' :
+                       a.overallScore >= 35 ? 'mixed' : 'challenging';
+
+    html += `
+      <div class="compat-section">
+        <div class="compat-section-title">
+          <span class="compat-score ${scoreClass}">${a.overallScore}</span>
+          <span>☉ Astrology Synastry</span>
+        </div>
+
+        <div class="synastry-chart-wrapper"></div>
+
+        <div class="compat-summary">${a.summary}</div>
+
+        <details class="collapsible" style="margin-top: 1rem;">
+          <summary>Key Connections (${Object.values(a.keyConnections).filter(c => c).length})</summary>
+          <div class="collapsible-content">
+            ${Object.entries(a.keyConnections)
+              .filter(([_, conn]) => conn)
+              .map(([key, conn]) => `
+                <div class="compat-connection">
+                  <div class="compat-connection-title">
+                    ${conn.symbolA || ''} ${conn.personA} ${conn.symbol} ${conn.personB} ${conn.symbolB || ''}
+                    <span style="color: var(--text-muted); font-weight: normal;">(${conn.aspect}, ${conn.orb}° orb)</span>
+                  </div>
+                  <div class="compat-connection-desc">${conn.meaning}</div>
+                </div>
+              `).join('')}
+          </div>
+        </details>
+
+        <details class="collapsible">
+          <summary>All Synastry Aspects (${a.synastryAspects.length})</summary>
+          <div class="collapsible-content">
+            <div class="compat-aspects-grid">
+              ${a.synastryAspects.slice(0, 20).map(asp => `
+                <div class="compat-aspect ${asp.harmony > 0 ? 'harmonious' : asp.harmony < 0 ? 'challenging' : ''}">
+                  <span>${asp.symbolA} ${asp.personA}</span>
+                  <span>${asp.symbol}</span>
+                  <span>${asp.personB} ${asp.symbolB}</span>
+                  <span style="color: var(--text-muted);">${asp.orb}°</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </details>
+      </div>
+    `;
+  }
+
+  // Human Design results
+  if (results.humanDesign) {
+    const hd = results.humanDesign;
+
+    html += `
+      <div class="compat-section">
+        <div class="compat-section-title">
+          <span style="font-size: 1.5rem; margin-right: 0.5rem;">◎</span>
+          Human Design Compatibility
+        </div>
+
+        <div class="composite-bodygraph-wrapper"></div>
+
+        <div class="compat-summary">
+          <strong>${hd.typeInteraction.typeA} + ${hd.typeInteraction.typeB}:</strong> ${hd.typeInteraction.dynamic}<br>
+          <em>${hd.typeInteraction.gifts}</em>
+        </div>
+
+        <details class="collapsible" style="margin-top: 1rem;" open>
+          <summary>Type & Authority Dynamics</summary>
+          <div class="collapsible-content">
+            <div class="compat-connection">
+              <div class="compat-connection-title">Type Interaction</div>
+              <div class="compat-connection-desc">
+                <strong>Gifts:</strong> ${hd.typeInteraction.gifts}<br>
+                <strong>Challenges:</strong> ${hd.typeInteraction.challenges}<br>
+                <strong>Tips:</strong> ${hd.typeInteraction.tips}
+              </div>
+            </div>
+            <div class="compat-connection">
+              <div class="compat-connection-title">Authority Timing</div>
+              <div class="compat-connection-desc">${hd.authorityDynamic.description}</div>
+            </div>
+            <div class="compat-connection">
+              <div class="compat-connection-title">Profile Harmony</div>
+              <div class="compat-connection-desc">${hd.profileHarmony.description}</div>
+            </div>
+          </div>
+        </details>
+
+        ${hd.electromagneticPairs.length > 0 ? `
+          <details class="collapsible">
+            <summary>Electromagnetic Connections (${hd.electromagneticPairs.length})</summary>
+            <div class="collapsible-content">
+              ${hd.electromagneticPairs.map(em => `
+                <div class="compat-connection">
+                  <div class="compat-connection-title">
+                    Channel of ${em.channel} (${em.gateA}-${em.gateB})
+                  </div>
+                  <div class="compat-connection-desc">${em.attraction} — ${em.theme}</div>
+                </div>
+              `).join('')}
+            </div>
+          </details>
+        ` : ''}
+
+        ${hd.sharedGates.length > 0 ? `
+          <details class="collapsible">
+            <summary>Shared Gates (${hd.sharedGates.length})</summary>
+            <div class="collapsible-content">
+              <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                ${hd.sharedGates.map(g => `
+                  <span class="gate-pill" title="${g.theme}">${g.gate} ${g.name}</span>
+                `).join('')}
+              </div>
+            </div>
+          </details>
+        ` : ''}
+      </div>
+    `;
+  }
+
+  // Gene Keys results
+  if (results.geneKeys) {
+    const gk = results.geneKeys;
+
+    html += `
+      <div class="compat-section">
+        <div class="compat-section-title">
+          <span style="font-size: 1.5rem; margin-right: 0.5rem;">✦</span>
+          Gene Keys Compatibility
+        </div>
+
+        <div class="compat-summary">${gk.summary}</div>
+
+        ${gk.sharedKeys.length > 0 ? `
+          <details class="collapsible" style="margin-top: 1rem;" open>
+            <summary>Shared Gene Keys (${gk.sharedKeys.length})</summary>
+            <div class="collapsible-content">
+              ${gk.sharedKeys.map(k => `
+                <div class="compat-connection">
+                  <div class="compat-connection-title">Key ${k.key}: ${k.theme}</div>
+                  <div class="compat-connection-desc">
+                    ${k.resonance}<br>
+                    <span style="color: var(--text-muted);">Shadow → Gift → Siddhi: ${k.shadow} → ${k.gift} → ${k.siddhi}</span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </details>
+        ` : ''}
+
+        ${gk.complementaryPairs.length > 0 ? `
+          <details class="collapsible">
+            <summary>Programming Partners (${gk.complementaryPairs.length})</summary>
+            <div class="collapsible-content">
+              ${gk.complementaryPairs.map(p => `
+                <div class="compat-connection">
+                  <div class="compat-connection-title">Key ${p.keyA} (${p.themeA}) ↔ Key ${p.keyB} (${p.themeB})</div>
+                  <div class="compat-connection-desc">${p.growthPath}</div>
+                </div>
+              `).join('')}
+            </div>
+          </details>
+        ` : ''}
+
+        <details class="collapsible">
+          <summary>Sequence Alignment</summary>
+          <div class="collapsible-content">
+            <div class="compat-connection">
+              <div class="compat-connection-title">Activation Sequence</div>
+              <div class="compat-connection-desc">${gk.activationAlignment.description}</div>
+            </div>
+            <div class="compat-connection">
+              <div class="compat-connection-title">Venus Sequence</div>
+              <div class="compat-connection-desc">${gk.venusAlignment.description}</div>
+            </div>
+            <div class="compat-connection">
+              <div class="compat-connection-title">Pearl Sequence</div>
+              <div class="compat-connection-desc">${gk.pearlAlignment.description}</div>
+            </div>
+          </div>
+        </details>
+      </div>
+    `;
+  }
+
+  if (!html) {
+    html = '<p style="text-align: center; color: var(--text-muted);">No comparison data available. Select systems to compare.</p>';
+  }
+
+  container.innerHTML = html;
+
+  // Render visual charts after HTML is in place
+  if (results.astrology && chartA?.astrology && chartB?.astrology) {
+    const synastryWrapper = container.querySelector('.synastry-chart-wrapper');
+    if (synastryWrapper) {
+      renderSynastryChart(synastryWrapper, chartA.astrology, chartB.astrology, results.astrology.synastryAspects);
+    }
+  }
+
+  if (results.humanDesign && chartA?.humanDesign && chartB?.humanDesign) {
+    const compositeWrapper = container.querySelector('.composite-bodygraph-wrapper');
+    if (compositeWrapper) {
+      renderCompositeBodygraph(compositeWrapper, chartA.humanDesign, chartB.humanDesign, results.humanDesign.electromagneticPairs);
     }
   }
 }
@@ -804,6 +1416,8 @@ async function initFromURL() {
 setupLocationAutocomplete();
 initDarkMode();
 initTabs();
+const profileManager = initProfilePicker();
+initComparison();
 initFromURL();
 
 // Auto-update DST when birth date changes

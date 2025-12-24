@@ -15,11 +15,37 @@
  *
  * const gk = calculateGeneKeys(hd);
  * console.log(gk.activationSequence.lifeWork.gift); // "Imagination"
+ *
+ * // Compatibility analysis
+ * import { compareAstrology, compareHumanDesign, compareGeneKeys } from 'natalengine';
+ * const synastry = compareAstrology(astroA, astroB);
+ * console.log(synastry.overallScore); // 72
  */
 
 // Main calculators
 export { default as calculateAstrology } from './calculators/astrology.js';
 export { default as calculateHumanDesign, calculateGeneKeys } from './calculators/humandesign.js';
+
+// Compatibility calculators
+export {
+  compareAstrology,
+  compareHumanDesign,
+  compareGeneKeys,
+  compareCharts
+} from './calculators/compatibility/index.js';
+
+// Profile storage (browser only)
+export {
+  getProfiles,
+  getProfile,
+  saveProfile,
+  deleteProfile,
+  renameProfile,
+  updateProfileCache,
+  clearAllProfiles,
+  exportProfiles,
+  importProfiles
+} from './storage/profiles.js';
 
 // Lower-level astronomy functions
 export { calculateBirthPositions, getZodiacSign } from './calculators/astronomy.js';
