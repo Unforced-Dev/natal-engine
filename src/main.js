@@ -591,7 +591,14 @@ async function calculateNatalChart(birthDate, birthTime, manualCoords, skipURLUp
     location = { lat: selectedLocation.lat, lon: selectedLocation.lon };
     // Use stored timezone with DST adjustment
     timezone = selectedLocation.timezone + (selectedLocation.isDST ? 1 : 0);
-    locationName = selectedLocation.name;
+    // Build full location name (city, region, country) - or use existing if loaded from URL
+    if (selectedLocation.fromURL) {
+      locationName = selectedLocation.name;
+    } else {
+      locationName = [selectedLocation.name, selectedLocation.region, selectedLocation.country]
+        .filter(Boolean)
+        .join(', ');
+    }
   }
 
   // Calculate
@@ -790,9 +797,20 @@ async function initFromURL() {
     const lng = parseFloat(params.lng);
     const tz = parseInt(params.tz) || Math.round(lng / 15);
     const tzStr = tz >= 0 ? `UTC+${tz}` : `UTC${tz}`;
+    const locationName = params.name || 'Custom Location';
+
+    // Set selectedLocation so Calculate button works
+    selectedLocation = {
+      lat: lat,
+      lon: lng,
+      timezone: tz,
+      isDST: false, // Can't know DST from URL, use raw timezone
+      name: locationName,
+      fromURL: true // Flag to indicate loaded from URL
+    };
 
     selectedDiv.innerHTML = `
-      <span>${params.name || 'Custom Location'}</span>
+      <span>${locationName}</span>
       <span class="location-coords">(${lat.toFixed(2)}, ${lng.toFixed(2)} ${tzStr})</span>
       <button type="button" class="clear-location" title="Clear">×</button>
     `;

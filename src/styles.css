@@ -1373,6 +1373,36 @@ footer a:hover {
   font-size: 0.95rem;
 }
 
+.beta-notice {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(245, 158, 11, 0.1));
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  border-radius: 8px;
+  padding: 0.875rem 1rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 1rem auto;
+  max-width: 500px;
+  text-align: center;
+}
+
+.beta-notice strong {
+  color: #d97706;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .beta-notice strong {
+  color: #fbbf24;
+}
+
+.beta-notice a {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.beta-notice a:hover {
+  text-decoration: none;
+}
+
 .compatibility-setup {
   display: flex;
   flex-direction: column;
