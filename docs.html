@@ -37,6 +37,7 @@
       <h2>Quick Start</h2>
       <pre><code>import {
   calculateAstrology,
+  calculateVedic,
   calculateHumanDesign,
   calculateGeneKeys
 } from 'natalengine';
@@ -56,6 +57,11 @@ console.log(astro.bigThree);
 // Human Design
 const hd = calculateHumanDesign('1990-06-15', 14.5, -5);
 console.log(hd.type.name);  // "Generator"
+
+// Vedic (Jyotish)
+const vedic = calculateVedic('1990-06-15', 14.5, -5, 40.7128, -74.0060);
+console.log(vedic.moonSign.summary);
+// "Moon in Simha (Leo), Purva Phalguni Nakshatra"
 
 // Gene Keys
 const gk = calculateGeneKeys(hd);
@@ -96,6 +102,48 @@ console.log(gk.activationSequence.lifeWork.gift);  // "Discrimination"</code></p
     dominantModality
   },
   bigThree: "♊ Gemini Sun, ♓ Pisces Moon, ♎ Libra Rising"
+}</code></pre>
+    </section>
+
+    <section class="content-section">
+      <h2>calculateVedic()</h2>
+      <p>Calculate Vedic (Jyotish) astrology chart using sidereal zodiac with Lahiri ayanamsa.</p>
+
+      <h3>Parameters</h3>
+      <ul>
+        <li><code>birthDate</code> (string) - Date in YYYY-MM-DD format</li>
+        <li><code>birthHour</code> (number) - Decimal hours (14.5 = 2:30 PM)</li>
+        <li><code>timezone</code> (number) - UTC offset (-5 for EST)</li>
+        <li><code>latitude</code> (number, optional) - Required for accurate Lagna</li>
+        <li><code>longitude</code> (number, optional) - Required for accurate Lagna</li>
+      </ul>
+
+      <h3>Returns</h3>
+      <pre><code>{
+  ayanamsa: {
+    system: "Lahiri",
+    degrees: 24.123,
+    formatted: "24° 7' 23\""
+  },
+  moonSign: {
+    rashi: { name: "Simha", westernName: "Leo", symbol: "♌" },
+    nakshatra: { name: "Purva Phalguni", pada: 2 },
+    summary: "Moon in Simha (Leo), Purva Phalguni Nakshatra"
+  },
+  positions: {
+    sun: { rashi, nakshatra, degree },
+    moon: { rashi, nakshatra, degree },
+    // ... all planets, rahu, ketu
+  },
+  dasha: {
+    birthLord: "Venus",
+    current: {
+      maha: "Venus", mahaRemaining: "5y 3m",
+      antar: "Saturn", antarRemaining: "1y 2m"
+    },
+    dashas: [...]
+  },
+  houses: { 1: { sign, planets }, ... }
 }</code></pre>
     </section>
 
